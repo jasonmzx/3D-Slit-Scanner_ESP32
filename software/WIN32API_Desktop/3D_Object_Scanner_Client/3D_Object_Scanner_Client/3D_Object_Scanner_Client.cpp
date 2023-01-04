@@ -6,6 +6,8 @@
 #include "3D_Object_Scanner_Client.h"
 #include <iostream>
 
+void server_main();
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -118,7 +120,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        100,
        hWnd,
        (HMENU)ID_CONNECT_TO_TCP,
-       (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE),
+       hInstance,
        NULL);
 
    if (!hWnd)
@@ -160,6 +162,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case ID_CONNECT_TO_TCP:
                 std::cout << "BTN PRESSED" << std::endl;
+                server_main();
                 break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);

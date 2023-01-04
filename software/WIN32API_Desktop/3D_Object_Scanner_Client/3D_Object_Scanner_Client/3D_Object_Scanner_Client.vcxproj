@@ -141,11 +141,13 @@
   <ItemGroup>
     <ClInclude Include="3D_Object_Scanner_Client.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="FreeImage.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3D_Object_Scanner_Client.cpp" />
+    <ClCompile Include="server1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="3D_Object_Scanner_Client.rc" />
