@@ -72,8 +72,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
+    TCP_server_thread.join();
     return (int) msg.wParam;
 }
+
+
 
 
 
