@@ -35,7 +35,7 @@
     <ClCompile Include="3D_Object_Scanner_Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="server1.cpp">
+    <ClCompile Include="tcp_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

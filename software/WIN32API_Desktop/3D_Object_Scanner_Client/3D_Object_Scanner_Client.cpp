@@ -5,8 +5,9 @@
 #include "framework.h"
 #include "3D_Object_Scanner_Client.h"
 #include <iostream>
+#include <thread>         // std::thread
 
-void server_main();
+void tcp_server_main();
 
 #define MAX_LOADSTRING 100
 
@@ -14,6 +15,9 @@ void server_main();
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+
+//Thread Variables 
+std::thread TCP_server_thread = std::thread(tcp_server_main);
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -29,17 +33,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
+
+    //Allocates Console Window and opens a dummy file IO, then allocates standard output to that.
     AllocConsole(); 
     
     FILE* fDummy;
     freopen_s(&fDummy, "CONOUT$", "w", stdout);
     std::cout << "Console is initialized" << std::endl;
 
+    //Spawning of threads
+
+
     // TODO: Place code here.
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_MY3DOBJECTSCANNERCLIENT, szWindowClass, MAX_LOADSTRING);
+    //Setting the background color of a window during window class registration
     MyRegisterClass(hInstance);
 
     // Perform application initialization:
@@ -89,6 +99,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_MY3DOBJECTSCANNERCLIENT);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.hbrBackground = CreateSolidBrush(0xbdf2cb);
 
     return RegisterClassExW(&wcex);
 }
@@ -110,18 +121,41 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   CreateWindowW(
-       L"BUTTON",
-       L"Connect to TCP",
-       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-       10,
-       10,
-       150,
-       100,
+   //! ********** TITLE ELEMENT **********
+  
+   HWND title = CreateWindowW(
+       L"STATIC", 
+       L"3D Object Scanner | by: jasonmzx (Jason Manarroo)", 
+       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON ,
+       330,
+       20,
+       750,
+       51,
        hWnd,
-       (HMENU)ID_CONNECT_TO_TCP,
+       NULL,
        hInstance,
        NULL);
+
+   HFONT titleFont = CreateFontW(33, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET,
+       OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+       DEFAULT_PITCH | FF_DONTCARE, L"Franklin Gothic");
+
+   SendMessageW(title, WM_SETFONT, (WPARAM)titleFont, TRUE);
+
+   //? ********** ENDOF TITLE ELEMENT **********
+
+   //CreateWindowW(
+   //    L"BUTTON",
+   //    L"Connect to TCP",
+   //    WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+   //    20,
+   //    100,
+   //    150,
+   //    100,
+   //    hWnd,
+   //    (HMENU)ID_CONNECT_TO_TCP,
+   //    hInstance,
+   //    NULL);
 
    if (!hWnd)
    {
@@ -146,26 +180,27 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+
     switch (message)
     {
     case WM_COMMAND:
         {
-            int wmId = LOWORD(wParam);
+            int wmId = LOWORD(wParam); //Low Parameter Integer
             // Parse the menu selections:
             switch (wmId)
             {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            case ID_CONNECT_TO_TCP:
-                std::cout << "BTN PRESSED" << std::endl;
-                server_main();
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
+                case IDM_ABOUT:
+                    DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                    break;
+                case IDM_EXIT:
+                    DestroyWindow(hWnd);
+                    break;
+                case ID_CONNECT_TO_TCP:
+                    std::cout << "BTN PRESSED" << std::endl;
+                    //server_main();
+                    break;
+                default:
+                    return DefWindowProc(hWnd, message, wParam, lParam);
             }
         }
         break;

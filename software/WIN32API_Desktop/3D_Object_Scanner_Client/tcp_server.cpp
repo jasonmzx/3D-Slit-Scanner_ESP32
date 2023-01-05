@@ -7,8 +7,9 @@
 
 //https://stackoverflow.com/questions/56919006/i-can-only-receive-one-word-winsock-c-tcp-ip-server-and-client
 
-void server_main()
+void tcp_server_main()
 {
+    AllocConsole();
     std::cout << "Server tcp/ip test V.14.0 XXXX" << std::endl;
 
     WSADATA wsa;
@@ -53,7 +54,7 @@ void server_main()
 
     do
     {
-        memset(recvbuf, 0, sizeof(recvbuf));
+        memset(recvbuf, 0, sizeof(recvbuf)); //Reset recvbuf
         int iResult = recv(clientS, recvbuf, 512, 0);
 
         if (iResult > 0)

@@ -147,7 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3D_Object_Scanner_Client.cpp" />
-    <ClCompile Include="server1.cpp" />
+    <ClCompile Include="tcp_server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="3D_Object_Scanner_Client.rc" />
