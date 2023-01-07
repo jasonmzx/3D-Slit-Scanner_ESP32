@@ -8,14 +8,30 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <functional>
 
 
 #pragma comment(lib, "Ws2_32.lib")
+
+class Cleanup {
+    std::function<void()> m_func;
+
+public:
+    explicit Cleanup(std::function<void()> func) : m_func(func) {} // Regular Constructor for executing void funcs w/ no params
+    Cleanup(const Cleanup& other) = delete;             // Deleting Copy Constructor 
+    Cleanup operator=(const Cleanup& other) = delete; // Deleting Re-Assignment Operator 
+
+    //Cleanup Destructor to automatically run clean-up function upon 
+    ~Cleanup() {
+        m_func();
+    }
+};
 
 //https://stackoverflow.com/questions/56919006/i-can-only-receive-one-word-winsock-c-tcp-ip-server-and-client
 
 void tcp_server_main()
 {
+
     AllocConsole();
     std::cout << "Server tcp/ip test V.14.0 XXXX" << std::endl;
 
@@ -23,6 +39,11 @@ void tcp_server_main()
 
     WSAStartup(MAKEWORD(2, 2), &wsa);
     sockaddr_in server, client;
+
+    Cleanup cleanup([] {
+        WSACleanup();
+        });
+
 
     SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     server.sin_family = AF_INET;
@@ -51,13 +72,12 @@ void tcp_server_main()
     if (clientS == INVALID_SOCKET)
     {
         std::cout << "error with accept()" << std::endl;
-        WSACleanup();
         return;
     }
 
     std::cout << "User is connected." << std::endl;
 
-    char recvbuf[512];
+    char recvbuf[4096]; 
 
     int bufferCount = 0;
 
@@ -82,39 +102,29 @@ void tcp_server_main()
             else {
 
 
-                int bufferLength = sizeof(recvbuf) / sizeof(recvbuf[0]);
 
-                for (int z = 0; z < bufferLength; z++) {
+                for (int z = 0; z < iResult; z++) {
                     imgCharBuffer.push_back((unsigned char)recvbuf[z]);
                 }
 
-                //Loop over character array & stuff
 
-      /*          for (int i = 0; i < sizeof(&recvbuf) / sizeof(const char*); i++) {
-                    std::cout << "a" << std::endl;
-                    imgCharBuffer.push_back(recvbuf[i]);
-                }*/
-
-
-
-                std::cout << "NEW LOOP: " << std::endl;
-                std::cout << recvbuf << std::endl;
-                std::cout << "buffSize: " << imgCharBuffer.size() << std::endl;
+                //std::cout << "NEW LOOP: " << std::endl;
+                //std::cout << recvbuf << std::endl;
+                //std::cout << "buffSize: " << imgCharBuffer.size() << std::endl;
             }
         }
         else {
 
             std::cout << "Iterating thru vec<char>" << std::endl;
-            for (int j = 0; j < imgCharBuffer.size(); j++) {
-                std::cout << imgCharBuffer[j];
-            }
+            for (auto c : imgCharBuffer) {
+                std::cout << c;
+			}
 
-            std::cout << "Cleaning and exitting?" << std::endl;
-            cv::Mat casted = cv::Mat(imgCharBuffer);
+            std::cout << "Cleaning and exiting?" << std::endl;
+            auto casted=cv::imdecode(imgCharBuffer, cv::IMREAD_COLOR);  
             cv::imshow("Raw Difference (No Pre-processing)", casted);
 
             cv::waitKey(0);
-            WSACleanup();
             return;
         }
         
