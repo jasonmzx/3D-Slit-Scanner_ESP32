@@ -41,11 +41,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     freopen_s(&fDummy, "CONOUT$", "w", stdout);
     std::cout << "Console is initialized" << std::endl;
 
-    //Spawning of threads
-
-
-    // TODO: Place code here.
-
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_MY3DOBJECTSCANNERCLIENT, szWindowClass, MAX_LOADSTRING);
