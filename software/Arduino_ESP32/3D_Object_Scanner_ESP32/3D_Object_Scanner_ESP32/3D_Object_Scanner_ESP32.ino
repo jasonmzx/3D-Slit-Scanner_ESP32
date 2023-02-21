@@ -34,25 +34,36 @@
 //* State Variable ,Enum & Structure Definitions
 
 //global 
-enum  MACHINE_state {IN_MENU, IN_PROGRESS, IDLE};
+enum  MACHINE_state {MENU, AUTO_PROGRESS, MANUAL_PROGRESS, IDLE};
 
-//when MACHINE is set to IN_PROGRESS
-enum IN_PROGRESS_state {OBJECT_SELECT, SCANNING, COMPLETED};
+//when MACHINE is set to AUTO_PROGRESS:
+enum AUTO_PROGRESS_state {OBJECT_SELECT, SCANNING, AUTO_COMPLETE};
+
+//when MACHINE is set to MANUAL_PROGRESS:
+enum MANUAL_PROGRESS_state{PROGRESS, MANUAL_COMPLETE};
+
+//* State definitions:
+
+MACHINE_state GLOBAL;
 
 
 
-//In Menu Structure
-struct {
-  int idle_tick; //Amount of time since last user input (When user goes A.F.K)
 
-} IN_MENU_struct;
 
-//In Progress Structure
-struct {
-  IN_PROGRESS_state state;
-  int current_step; //Step the motor is at
-  //TODO: Fill this more
-} IN_PROGRESS_struct;
+//OLED_HANDLER I CAN"T IMPORT!!!!
+void draw_menu() {
+  OLED_DISPLAY.clearDisplay();
+
+  //LOGO
+
+  OLED_DISPLAY.setTextSize(1);             // Normal 1:1 pixel scale
+  OLED_DISPLAY.setTextColor(SSD1306_WHITE);        // Draw white text
+  OLED_DISPLAY.setCursor(0,0);             // Start at top-left corner
+  OLED_DISPLAY.println(F("menu"));
+
+  OLED_DISPLAY.display();
+}
+
 
 
 void setup() {
@@ -72,15 +83,22 @@ void setup() {
 
 
   draw_start_up_logo(OLED_DISPLAY);
-
+  GLOBAL = MENU;
   //! pinMode(stepPin,OUTPUT); 
   //! pinMode(dirPin,OUTPUT);
 
-  delay(2000);
+  delay(1000);
 
 }
 
 void loop() {
+
+  //Main State Assertion:
+  if(GLOBAL == MENU){
+    draw_menu();
+  }
+
+
   // put your main code here, to run repeatedly:
 
     //! int microDelay = 1000;

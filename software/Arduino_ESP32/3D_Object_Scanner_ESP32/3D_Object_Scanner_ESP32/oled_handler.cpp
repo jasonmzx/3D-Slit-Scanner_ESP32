@@ -1,6 +1,5 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Arduino.h> //For Serial & delay fns.
 
 //Header File containing the `oled_handler` functions
 #include "handler.h"
@@ -16,4 +15,6 @@ void draw_start_up_logo(Adafruit_SSD1306 OLED_DISPLAY) {
   OLED_DISPLAY.println(F("By: jasonmzx"));
 
   OLED_DISPLAY.display();
+  return;
 }
+
