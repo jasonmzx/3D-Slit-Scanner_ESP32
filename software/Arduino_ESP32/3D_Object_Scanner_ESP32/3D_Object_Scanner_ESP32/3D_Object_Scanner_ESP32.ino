@@ -49,23 +49,6 @@ MACHINE_state GLOBAL;
 
 
 
-
-//OLED_HANDLER I CAN"T IMPORT!!!!
-void draw_menu() {
-  OLED_DISPLAY.clearDisplay();
-
-  //LOGO
-
-  OLED_DISPLAY.setTextSize(1);             // Normal 1:1 pixel scale
-  OLED_DISPLAY.setTextColor(SSD1306_WHITE);        // Draw white text
-  OLED_DISPLAY.setCursor(0,0);             // Start at top-left corner
-  OLED_DISPLAY.println(F("menu"));
-
-  OLED_DISPLAY.display();
-}
-
-
-
 void setup() {
   //ESP32 - Wrover Cam Board runs on 115.2k baud
   Serial.begin(115200);
@@ -95,7 +78,7 @@ void loop() {
 
   //Main State Assertion:
   if(GLOBAL == MENU){
-    draw_menu();
+    draw_menu(&OLED_DISPLAY, false);
   }
 
 
