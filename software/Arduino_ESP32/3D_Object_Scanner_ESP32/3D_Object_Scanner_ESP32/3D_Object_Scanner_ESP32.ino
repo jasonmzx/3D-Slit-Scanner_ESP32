@@ -27,6 +27,16 @@
   int valueY = 0; // to store the Y-axis value
   int buttonValue = 0;
 
+  //Joystick Decoding:
+  const int JS_HIGH = 4095;
+  const int JS_LOW = 0; 
+
+  int joystick_analog_decode(int analog) {
+      if(JS_HIGH == analog){ return 1; }
+      if(JS_LOW == analog){return -1;}
+      if(JS_LOW < analog < JS_HIGH){return 0;}
+  }
+
 //? OLED Definitions:
   Adafruit_SSD1306 OLED_DISPLAY(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -46,7 +56,9 @@ enum MANUAL_PROGRESS_state{PROGRESS, MANUAL_COMPLETE};
 
 MACHINE_state GLOBAL;
 
-
+struct {             
+  bool selected_component; //8 bit integer that holds the position from Left X (Most left X component = 0)
+} menu;       
 
 
 void setup() {
@@ -77,9 +89,6 @@ void setup() {
 void loop() {
 
   //Main State Assertion:
-  if(GLOBAL == MENU){
-    draw_menu(&OLED_DISPLAY, false);
-  }
 
 
   // put your main code here, to run repeatedly:
@@ -102,6 +111,21 @@ void loop() {
   valueY = analogRead(VRY_PIN);
   buttonValue = JOYSTICK_BUTTON.getState();
 
+  int decodedX = joystick_analog_decode(valueX);
+
+    if(menu.selected_component > 0 && decodedX == -1){
+      menu.selected_component = false;
+    }
+
+    if(menu.selected_component == 0 && decodedX == 1){
+      menu.selected_component = true;
+    }
+
+  if(GLOBAL == MENU){
+    draw_menu(&OLED_DISPLAY, menu.selected_component);
+  }
+
+  int decodedY = joystick_analog_decode(valueY);
 
   if (JOYSTICK_BUTTON.isPressed()) {
     Serial.println("The button is pressed");
@@ -115,9 +139,9 @@ void loop() {
 
   // print data to Serial Monitor on Arduino IDE
   Serial.print("x = ");
-  Serial.print(valueX);
+  Serial.print(menu.selected_component);
   Serial.print(", y = ");
-  Serial.println(valueY);
+  Serial.println(decodedY);
   Serial.print("BV: ");
   Serial.println(buttonValue);
   delay(200);

@@ -29,9 +29,6 @@ void draw_menu(Adafruit_SSD1306* OLED_DISPLAY, bool selected) {
   OLED_DISPLAY->println(F("3D OBJ-SCAN MENU:"));
 
   OLED_DISPLAY->setTextSize(2);
-
-  //Condition Rendering:
-
   
   //Left component
   OLED_DISPLAY->setCursor(5,35); 
