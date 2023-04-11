@@ -40,11 +40,15 @@
 //? OLED Definitions:
   Adafruit_SSD1306 OLED_DISPLAY(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+//? NEMA 17 Stepper Motor Definitions:
+const int stepPin = 32; 
+const int dirPin = 33; 
+
 
 //* State Variable ,Enum & Structure Definitions
 
 //global 
-enum  MACHINE_state {MENU, AUTO_PROGRESS, MANUAL_PROGRESS, IDLE};
+enum  MACHINE_state {MENU, AUTO, MANUAL, IDLE};
 
 //when MACHINE is set to AUTO_PROGRESS:
 enum AUTO_PROGRESS_state {OBJECT_SELECT, SCANNING, AUTO_COMPLETE};
@@ -56,6 +60,12 @@ enum MANUAL_PROGRESS_state{PROGRESS, MANUAL_COMPLETE};
 
 MACHINE_state GLOBAL;
 
+AUTO_PROGRESS_state AUTO_S;
+MANUAL_PROGRESS_state MANUAL_S;
+
+
+//TODO: fix this design pattern?
+
 struct {             
   bool selected_component; //8 bit integer that holds the position from Left X (Most left X component = 0)
 } menu;       
@@ -64,6 +74,10 @@ struct {
 void setup() {
   //ESP32 - Wrover Cam Board runs on 115.2k baud
   Serial.begin(115200);
+
+  //Activating Pins for Stepper Motor:
+  pinMode(stepPin,OUTPUT); 
+  pinMode(dirPin,OUTPUT);
 
   //for joystick
    JOYSTICK_BUTTON.setDebounceTime(50); // set debounce time to 50 milliseconds
@@ -93,13 +107,12 @@ void loop() {
 
   // put your main code here, to run repeatedly:
 
-    //! int microDelay = 1000;
-    //! for(int x = 0; x < 200; x++) {
-    //!  digitalWrite(stepPin,HIGH); 
-    //!  delayMicroseconds(microDelay); 
-    //!  digitalWrite(stepPin,LOW); 
-    //!  delayMicroseconds(microDelay); 
-    //! }
+     int microDelay = 1000;
+     for(int x = 0; x < 200; x++) {
+      digitalWrite(stepPin,HIGH); 
+      delayMicroseconds(microDelay); 
+      digitalWrite(stepPin,LOW); 
+     }
 
   delay(100); // One second delay
   Serial.println("Rotated");
@@ -113,6 +126,9 @@ void loop() {
 
   int decodedX = joystick_analog_decode(valueX);
 
+
+  if(GLOBAL == MENU){
+
     if(menu.selected_component > 0 && decodedX == -1){
       menu.selected_component = false;
     }
@@ -121,16 +137,41 @@ void loop() {
       menu.selected_component = true;
     }
 
-  if(GLOBAL == MENU){
+    //Check if the user ends up selecting an option:
+      if (JOYSTICK_BUTTON.isPressed()) {
+      
+        if(menu.selected_component == true){ //implies right
+          GLOBAL = MANUAL;
+        } else {
+          GLOBAL = AUTO;
+        }
+
+      }
+
+
     draw_menu(&OLED_DISPLAY, menu.selected_component);
+  
   }
 
-  int decodedY = joystick_analog_decode(valueY);
+  if(GLOBAL == MANUAL) {
+    
+    int microDelay = 1000;
 
-  if (JOYSTICK_BUTTON.isPressed()) {
-    Serial.println("The button is pressed");
-    // TODO do something here
+      for(int x = 0; x < 200; x++) {
+    digitalWrite(stepPin,HIGH); 
+    delayMicroseconds(microDelay); 
+    digitalWrite(stepPin,LOW); 
+      }
+    delay(100);
+  
+    draw_manual(&OLED_DISPLAY);
   }
+
+  if(GLOBAL == AUTO) {
+    draw_manual(&OLED_DISPLAY);
+  }
+
+
 
   if (JOYSTICK_BUTTON.isReleased()) {
     Serial.println("The button is released");
@@ -140,8 +181,6 @@ void loop() {
   // print data to Serial Monitor on Arduino IDE
   Serial.print("x = ");
   Serial.print(menu.selected_component);
-  Serial.print(", y = ");
-  Serial.println(decodedY);
   Serial.print("BV: ");
   Serial.println(buttonValue);
   delay(200);

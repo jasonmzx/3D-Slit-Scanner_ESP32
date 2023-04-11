@@ -49,3 +49,14 @@ void draw_menu(Adafruit_SSD1306* OLED_DISPLAY, bool selected) {
   OLED_DISPLAY->display();
 }
 
+void draw_manual(Adafruit_SSD1306* OLED_DISPLAY) {
+  OLED_DISPLAY->clearDisplay();
+
+  //Always Render:
+  OLED_DISPLAY->setTextSize(1);             // Normal 1:1 pixel scale
+  OLED_DISPLAY->setTextColor(SSD1306_WHITE);        // Draw white text
+  OLED_DISPLAY->setCursor(0,0);             // Start at top-left corner
+  OLED_DISPLAY->println(F("draw Manual:"));
+
+  OLED_DISPLAY->display();
+}
