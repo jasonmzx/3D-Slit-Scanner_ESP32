@@ -1,9 +1,28 @@
+
+// This Project was built by: Jason Manarroo
+
+//C++ Built-in Libraries:
 #include<iostream>
+
+// OpenGL & Related Libraries
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
+// OpenCV & Image Processing Libraries
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
 int main()
 {
+
+	//OpenCV testing
+
+	std::string casted_img_path = "Resources/edited_rt_casted.png";
+	cv::Mat casted = cv::imread(casted_img_path);
+	std::cout << " Loaded OpenCV Mat" << std::endl;
+	cv::imshow("Difference with Pre-processing", casted);
+
 	// Initialize GLFW
 	glfwInit();
 
