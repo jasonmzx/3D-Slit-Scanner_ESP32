@@ -3,26 +3,35 @@
 
 //C++ Built-in Libraries:
 #include<iostream>
+#include <thread>  // std::thread
 
 // OpenGL & Related Libraries
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
+
+//TODO: Import & Get GLM working in the project
 
 // OpenCV & Image Processing Libraries
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+//Project imports
+#include "image_processing.h"
+
 int main()
 {
 
 	//OpenCV testing
 
-	std::string casted_img_path = "Resources/edited_rt_casted.png";
-	cv::Mat casted = cv::imread(casted_img_path);
-	std::cout << " Loaded OpenCV Mat" << std::endl;
-	cv::imshow("Difference with Pre-processing", casted);
+	//std::string casted_img_path = "Resources/edited_rt_casted.png";
+	//cv::Mat casted = cv::imread(casted_img_path);
+	//std::cout << " Loaded OpenCV Mat" << std::endl;
+	//cv::imshow("Difference with Pre-processing", casted);
 
+	//TODO: Write TCP Server Initialization & Run in parallel thread
+
+	process_img1();
 	// Initialize GLFW
 	glfwInit();
 
@@ -54,7 +63,6 @@ int main()
 	// Specify the viewport of OpenGL in the Window
 	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 	glViewport(0, 0, 800, 800);
-
 
 
 	// Specify the color of the background
