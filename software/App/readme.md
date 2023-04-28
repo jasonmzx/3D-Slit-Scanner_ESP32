@@ -12,3 +12,5 @@
 
 Useful links:
 https://youtu.be/45MIykWJ-C4
+
+https://github.com/VictorGordan/opengl-tutorials/tree/main/YoutubeOpenGL%207%20-%20Going%203D
