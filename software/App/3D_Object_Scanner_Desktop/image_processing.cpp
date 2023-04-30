@@ -5,14 +5,19 @@
 #include <iostream>
 #include <cmath>
 
+#include<glad/glad.h>
+
 #include "image_processing.h" 
 
 const double pi = 3.14159265358979323846;
 
-void detectBrightPixels(cv::Mat image) {
+GLfloat detect_lazer_projection(cv::Mat image) {
 
-    std::vector<cv::Point> brightPixels; // Store bright pixels as points
-    std::vector<cv::Point> zPixels; //
+    std::vector<GLfloat> xyz_slice;
+
+
+    std::vector<cv::Point> xyPixels; // Store bright pixels as points (X,Y)
+    std::vector<cv::Point> zPixels; // (Z, Y)
 
     // Loop through each pixel row by row
     for (int row = 0; row < image.rows; row++) {
@@ -31,23 +36,20 @@ void detectBrightPixels(cv::Mat image) {
 
 
                 double result = col / tan(42 * pi / 180); // Divide value by tangent of 45 degrees
-                int finalResult = static_cast<int>(result); // Convert result to integer
+                //? int finalResult = static_cast<int>(result); // Convert result to integer 
 
-                // - X Y points
+                xyz_slice.push_back(col); //X
+                xyz_slice.push_back(row); //Y
+                xyz_slice.push_back(result); //Z --> X / tan(theta) 
+                                                            
 
-                cv::Point point(col, row); // Create a point for the bright pixel
-                brightPixels.push_back(point); // Add the point to the list of bright pixels
-
-                // Z axis points
-                cv::Point zPoint(finalResult, row);
-                zPixels.push_back(zPoint);
             }
         }
     }
 
     // Display the vertices on a cv::imshow window
     cv::Mat result = image.clone();
-    for (cv::Point point : brightPixels) {
+    for (cv::Point point : xyPixels) {
         cv::circle(result, point, 2, cv::Scalar(0, 255, 0), -1); // Draw a Green circle at the point
     }
 
@@ -97,6 +99,6 @@ void process_img1() {
     cv::namedWindow("Show matrix", cv::WINDOW_NORMAL);
     cv::resizeWindow("Show matrix", 600, 600);
     cv::imshow("Show matrix", proc_diff);
-    detectBrightPixels(proc_diff);
+    detect_lazer_projection(proc_diff);
     cv::waitKey(0);
 }

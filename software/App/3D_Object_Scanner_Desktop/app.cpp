@@ -35,24 +35,26 @@ const unsigned int height = 800;
 
 
 // Vertices coordinates
+//GLfloat vertices[] =
+//{ //     COORDINATES     /        COLORS      /   TexCoord  //
+//	-0.5f, 0.0f,  0.5f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
+//	-0.5f, 0.0f, -0.5f,     0.0f, 1.0f, 0.0f,	5.0f, 0.0f,
+//	 0.5f, 0.0f, -0.5f,     0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+//	 0.5f, 0.0f,  0.5f,     1.0f, 1.0f, 0.0f,	5.0f, 0.0f,
+//	 0.0f, 0.8f,  0.0f,     1.0f, 0.41f, 0.71f,	2.5f, 5.0f,
+//};
+
 GLfloat vertices[] =
 { //     COORDINATES     /        COLORS      /   TexCoord  //
-	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
-	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	5.0f, 0.0f,
-	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
-	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	5.0f, 0.0f,
-	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	2.5f, 5.0f
+	-0.5f, 0.0f, -0.5f,     1.0f, 0.0f, 0.0f,
+	-0.5f, 0.5f, -0.5f,     0.0f, 1.0f, 0.0f,	
+	 0.0f, 0.0f, -0.0f,     0.0f, 0.0f, 1.0f,
 };
 
 // Indices for vertices order
 GLuint indices[] =
 {
-	0, 1, 2,
-	0, 2, 3,
-	0, 1, 4,
-	1, 2, 4,
-	2, 3, 4,
-	3, 0, 4
+	0, 1, 2
 };
 
 
@@ -60,7 +62,7 @@ GLuint indices[] =
 int main()
 {
 
-	process_img1();
+	//process_img1();
 	// Initialize GLFW
 	glfwInit();
 
@@ -107,9 +109,9 @@ int main()
 	EBO EBO1(indices, sizeof(indices));
 
 	// Links VBO attributes such as coordinates and colors to VAO
-	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
-	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	// Unbind all to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
@@ -118,20 +120,12 @@ int main()
 	// Gets ID of uniform called "scale"
 	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
-	/*
-	* I'm doing this relative path thing in order to centralize all the resources into one folder and not
-	* duplicate them between tutorial folders. You can just copy paste the resources from the 'Resources'
-	* folder and then give a relative path from this folder to whatever resource you want to get to.
-	* Also note that this requires C++17, so go to Project Properties, C/C++, Language, and select C++17
-	*/
-
-
 	// Original code from the tutorial
 	/*Texture brickTex("brick.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
 	brickTex.texUnit(shaderProgram, "tex0", 0);*/
 
 	// Variables that help the rotation of the pyramid
-	float rotation = 0.0f;
+	float rotation = 0.05f;
 	double prevTime = glfwGetTime();
 
 	// Enables the Depth Buffer
@@ -151,7 +145,7 @@ int main()
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
-			rotation += 0.5f;
+			rotation += 0.005f; //rotation speed
 			prevTime = crntTime;
 		}
 
@@ -185,8 +179,6 @@ int main()
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
-
-
 
 	// Delete all the objects we've created
 	VAO1.Delete();
