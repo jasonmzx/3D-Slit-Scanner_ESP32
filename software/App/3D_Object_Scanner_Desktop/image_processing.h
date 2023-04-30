@@ -2,7 +2,7 @@
 #define IMAGE_PROCESSING_H
 
 // Function declaration for image processing function
-void detect_lazer_projection();
-void process_img1();
+GLfloat* detect_lazer_projection();
+GLfloat* img_proc();
 
 #endif // IMAGE_PROCESSING_H

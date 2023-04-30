@@ -51,6 +51,8 @@ GLfloat vertices[] =
 	 0.0f, 0.0f, -0.0f,     0.0f, 0.0f, 1.0f,
 };
 
+//GLfloat* vertices = img_proc();
+
 // Indices for vertices order
 GLuint indices[] =
 {
@@ -63,6 +65,7 @@ int main()
 {
 
 	//process_img1();
+	// 
 	// Initialize GLFW
 	glfwInit();
 
