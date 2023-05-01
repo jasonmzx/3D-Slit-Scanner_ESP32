@@ -8,6 +8,7 @@ struct VerticeObject {
     int vertices_length;
 
     GLuint* indices;
+    int indices_length;
 };
 
 
