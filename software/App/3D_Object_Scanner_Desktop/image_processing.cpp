@@ -43,7 +43,7 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
     //Origin Point:
 
-    std::vector<GLfloat> xyz_slice = { 0.0f , 0.0f , 0.0f , 1.0f, 0.0f, 0.0f };
+    std::vector<GLfloat> xyz_slice = { -0.5f , -0.5f , -0.5f , 1.0f, 0.0f, 0.0f };
 
     std::vector<cv::Point> xyPixels; // Store bright pixels as points (X,Y)
     std::vector<cv::Point> zPixels; // (Z, Y)
@@ -66,7 +66,7 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
             float brightness = (0.5126 * r + 0.2152 * g + 0.0722 * b);
 
             // If the pixel is bright, generate a vertex for it
-            if (brightness > 45) { // Brightness threshold of 150, adjust as needed
+            if (brightness > 65) { // Brightness threshold of 150, adjust as needed
 
                 //Debugging purposes:
 
@@ -88,14 +88,14 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
             GLfloat normalX = normalizeCoordinate(middle, n_rows);
             GLfloat normalY = normalizeCoordinate(row, n_cols);   
             
-            double result = middle / tan(42 * pi / 180); // Divide value by tangent of 45 degrees
+            double result = middle / tan(30 * pi / 180); // Divide value by tangent of 45 degrees
             int finalResult = static_cast<int>(result); // Convert result to integer 
 
             GLfloat normalZ = normalizeCoordinate(finalResult, n_cols);
             
             // [ X Y Z  R G B , ... , ... ]
             xyz_slice.reserve(6);
-            xyz_slice.insert(xyz_slice.end(), { normalY, normalX, normalZ, 0.0f, 1.0f, 0.0f });
+            xyz_slice.insert(xyz_slice.end(), { normalX, normalY, normalZ, 0.0f, 1.0f, 0.0f });
         
         }
 
@@ -171,6 +171,21 @@ VerticeObject gen() {
     cv::Mat processed_matrix = img_process();
 
     VerticeObject obj = detect_lazer_projection(processed_matrix); 
+
+    //Add Indices:
+    std::cout << "Vertex Len: " << obj.vertices_length << std::endl;
+
+    obj.indices = new GLuint[obj.vertices_length];
+
+    int incr = 0;
+
+    for (int j = 0; j < (obj.vertices_length / 2) ; j++) {
+        obj.indices[j] = 0;
+        obj.indices[j + 1] = incr + 1;
+        obj.indices[j + 2] = incr + 2;
+        incr++;
+        j = j + 2;
+    }
 
     return obj;
 

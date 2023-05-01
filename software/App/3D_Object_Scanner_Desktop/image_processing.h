@@ -6,6 +6,8 @@
 struct VerticeObject {
     GLfloat* vertices;
     int vertices_length;
+
+    GLuint* indices;
 };
 
 
