@@ -46,7 +46,6 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
     std::vector<GLfloat> xyz_slice = { 0.0 , 0.0, 0.0 , 1.0f, 0.0f, 0.0f };
 
     std::vector<cv::Point> xyPixels; // Store bright pixels as points (X,Y)
-    std::vector<cv::Point> zPixels; // (Z, Y)
 
     // Loop through each pixel row by row
     for (int row = 0; row < n_rows; row++) {
@@ -57,7 +56,7 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
         //? TODO, change 500 back to `n_cols`
 
-        for (int k = 10; k < 359; k+= 2) {
+        for (int k = 1; k < 360; k+= 2) {
             for (int col = 0; col < 1000; col++) {
 
 
@@ -68,16 +67,16 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
                 int b = pixel[0];
 
                 // Calculate the brightness of the pixel
-                float brightness = (0.5126 * r + 0.2152 * g + 0.0722 * b);
+                float brightness = (1 * r + 0.7 * g + 0.7 * b);
 
                 // If the pixel is bright, generate a vertex for it
-                if (brightness > 70) { // Brightness threshold of 150, adjust as needed
+                if (brightness > 200) { // Brightness threshold of 150, adjust as needed
 
                     //Debugging purposes:
 
                     x_slice.push_back(col);
 
-                    double result = col / tan(42 * pi / 180); // Divide value by tangent of 45 degrees
+                    double result = col / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
                     int finalResult = static_cast<int>(result); // Convert result to integer                                          
 
                 }
@@ -91,11 +90,9 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
                 int middle = x_slice[x_slice.size() / 2];
                 cv::Point xyPoint(middle, row);
 
-                xyPixels.push_back(xyPoint);
+                xyPixels.push_back(xyPoint); //Push to OpenCV Image processing render
 
                 GLfloat offset = 0.5;
-
-
 
                 GLfloat normalX = normalizeCoordinate(middle, n_rows);
 
