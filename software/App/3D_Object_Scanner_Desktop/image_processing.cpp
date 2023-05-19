@@ -56,8 +56,10 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
         //? TODO, change 500 back to `n_cols`
 
-        for (int k = 1; k < 360; k+= 2) {
-            for (int col = 0; col < 1000; col++) {
+        //for (int k = 1; k < 360; k+= 2) {
+        //    for (int col = 0; col < 1000; col++) {
+                for (int k = 1; k < 2; k += 2) {
+                    for (int col = 0; col < 2; col++) {
 
 
                 // Get the RGB values of the current pixel
@@ -190,6 +192,57 @@ cv::Mat img_process() {
 	cv::absdiff(no_cast, casted, raw_diff);
 	//Abs with preproc
 	cv::absdiff(no_cast_pp, casted_pp, proc_diff);
+
+
+    //Crop Perspective Technique?
+
+    std::vector<cv::Point2f> perspective_crop;
+
+    //? Currently Hardcoded... FIX IT
+    perspective_crop.push_back(cv::Point2f(950, 0)  ); //Top Right
+    perspective_crop.push_back(cv::Point2f(950, 650)   ); //Bottom Right
+    perspective_crop.push_back(cv::Point2f(150, 940)); //Bottom Left
+    perspective_crop.push_back(cv::Point2f(150, 338)  ); //Top Left
+
+    //perspective_crop.push_back(cv::Point2f(0, 0));         // Top Left
+    //perspective_crop.push_back(cv::Point2f(500, 0));       // Top Right
+    //perspective_crop.push_back(cv::Point2f(500, 500));     // Bottom Right
+    //perspective_crop.push_back(cv::Point2f(0, 500));       // Bottom Left
+
+// Define the target shape for the rotated image
+    std::vector<cv::Point2f> target_shape;
+    target_shape.push_back(cv::Point2f(proc_diff.cols, 0));           // Top Right
+    target_shape.push_back(cv::Point2f(proc_diff.cols, proc_diff.rows));// Bottom Right (POINT 1)
+    target_shape.push_back(cv::Point2f(0, proc_diff.rows));            // Bottom Left (POINT 2)
+    target_shape.push_back(cv::Point2f(0, 0));
+
+    // Get the perspective transformation matrix
+    
+     cv::Mat transformation = cv::getPerspectiveTransform(perspective_crop, target_shape);
+
+    // Apply the perspective transformation
+    cv::Mat rotated_image;
+    cv::warpPerspective(proc_diff, rotated_image, transformation, proc_diff.size());
+
+    cv::Scalar neonGreen(57, 255, 20); // BGR color values for neon green
+
+    for (int i = 0; i < perspective_crop.size(); i++)
+    {
+        cv::Point p1 = perspective_crop[i];
+        cv::Point p2 = perspective_crop[(i + 1) % perspective_crop.size()]; // Connect the last point with the first point
+
+        cv::line(proc_diff, p1, p2, neonGreen, 2);
+    }
+
+
+    cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
+    cv::resizeWindow("imgProc", 1000, 1000);
+    cv::imshow("imgProc", proc_diff);
+    cv::waitKey(0);
+
+    cv::namedWindow("imgProc1", cv::WINDOW_NORMAL);
+    cv::imshow("imgProc1", rotated_image);
+    cv::waitKey(0);
 
     return proc_diff;
 }
