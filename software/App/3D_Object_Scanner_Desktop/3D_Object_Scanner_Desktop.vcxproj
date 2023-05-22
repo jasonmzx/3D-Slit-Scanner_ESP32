@@ -151,6 +151,7 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="image_processing.cpp" />
     <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="tcp_server.cpp" />
     <ClCompile Include="VAO.cpp" />
     <ClCompile Include="VBO.cpp" />
   </ItemGroup>

@@ -20,6 +20,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+void tcp_server_main();
+
 //Project imports
 #include "image_processing.h"
 
@@ -33,6 +35,10 @@
 
 const unsigned int width = 1000;
 const unsigned int height = 1000;
+
+
+//Thread Variables 
+std::thread TCP_server_thread = std::thread(tcp_server_main);
 
 
 // Vertices coordinates
@@ -54,7 +60,6 @@ GLuint* indices = load.indices; // 0, 1, 2 , 0, 2, 3, 0, 3 ,4 ....
 
 int main()
 {
-
 	std::cout << "Indices (First 20): " << std::endl;
 
 	for (int i = 0; i < 20; i++) {
@@ -65,6 +70,7 @@ int main()
 	//process_img1();
 	// 
 	// Initialize GLFW
+	
 	glfwInit();
 
 	// Tell GLFW what version of OpenGL we are using 
@@ -88,7 +94,11 @@ int main()
 	glfwMakeContextCurrent(window);
 
 	//Load GLAD so it configures OpenGL
+	
+	
 	gladLoadGL();
+	
+	
 	// Specify the viewport of OpenGL in the Window
 	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 	glViewport(0, 0, width, height);
