@@ -136,7 +136,7 @@ void tcp_server_main()
 
                 //Now casted is a Mat type (cv::Mat)
                 matrixBuffer.push_back(casted);
-                std::cout << "Matrix pushed into MBuffer !" << std::endl;
+                std::cout << "Matrix pushed into Matrix Buffer !" << std::endl;
                 bufferCount = 0;
                 showMat(casted);
                 closesocket(clientS);

@@ -178,7 +178,7 @@ void loop() {
 //Get Camera Sensor and push to Client
 
    const char *data = (const char*)fb->buf; //Cast
-    
+
   Serial.print("Size of image:");
   Serial.println(fb->len);
   Serial.print("Shape->width:");
@@ -190,6 +190,16 @@ void loop() {
   client.write((char*)&(fb->height),sizeof(fb->height)); //Character Buffer for Height (bytes)
   //Main State Assertion:
 
+
+  // Give the server a chance to receive the information before sending an acknowledgement.
+  delay(1000);
+  getResponse(client);
+  Serial.print(data);
+  client.write(data, fb->len);
+  esp_camera_fb_return(fb);
+  
+  Serial.println("Disconnecting...");
+  client.stop();
 
   // put your main code here, to run repeatedly:
 
@@ -273,6 +283,16 @@ void loop() {
 
 }
 
+
+void getResponse(WiFiClient client) {
+  byte buffer[8] = { NULL };
+  while (client.available() > 0 || buffer[0] == NULL) {
+    int len = client.available();
+    Serial.println("Len" + len);
+    if (len > 8) len = 8;
+    client.read(buffer, len);
+  }
+}
 
 //Config Init function:
 
