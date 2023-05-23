@@ -61,7 +61,7 @@ void tcp_server_main()
     SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(8887);
+    server.sin_port = htons(8888);
 
     // BINDING SOCKET ADDRESS:
     int bindStatus = bind(s, (sockaddr*)&server, sizeof(server));

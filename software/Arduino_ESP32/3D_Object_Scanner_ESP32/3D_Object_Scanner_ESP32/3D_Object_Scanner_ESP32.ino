@@ -14,10 +14,26 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+//ESP WIFI
+#include <WiFi.h>
+#include <WiFiMulti.h>
+
 //Local Dependencies:
 
 #include "pins.h"
 #include "handler.h"
+#include "camera_handle.cpp"
+
+WiFiMulti WiFiMulti;
+camera_config_t config;
+
+
+//? WIFI
+
+const char *ssid_Router     = "wifina";  //input your wifi name
+const char *password_Router = "1326Gabi@";  //input your wifi passwords
+
+void config_init();
 
 //? Joystick Definitions:
 
@@ -96,12 +112,82 @@ void setup() {
   //! pinMode(stepPin,OUTPUT); 
   //! pinMode(dirPin,OUTPUT);
 
+  //Initializing Camera
+
+  config_init(); //This function sets the `camera_config_t config` global var to the pins needed (defined in `pins.h`)
+
+  // camera init
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("Camera init failed with error 0x%x", err);
+    return;
+  }
+
+  sensor_t * s = esp_camera_sensor_get();
+  s->set_vflip(s, 0);        //1-Upside down, 0-No operation
+  s->set_hmirror(s, 0);      //1-Reverse left and right, 0-No operation
+  s->set_brightness(s, 1);   //up the blightness just a bit
+  s->set_saturation(s, -1);  //lower the saturation
   delay(1000);
 
+  // We start by connecting to a WiFi network
+  WiFiMulti.addAP(ssid_Router, password_Router);
+
+    Serial.println();
+    Serial.println();
+    Serial.print("Waiting for WiFi... ");
+
+  while(WiFiMulti.run() != WL_CONNECTED) {
+        Serial.print(".");
+        delay(500);
+  }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    delay(500);
 }
 
 void loop() {
 
+    const uint16_t port = 8888;
+    const char * host = "10.0.0.88"; // IPv4 internal (of my Laptop)
+
+  //WIFI Client
+    WiFiClient client;
+
+    if (!client.connect(host, port)) {
+        Serial.println("Connection failed.");
+        Serial.println("Waiting 5 seconds before retrying...");
+        delay(5000);
+        return;
+    }
+
+    Serial.println("Connected to server ! ( OK )");
+    camera_fb_t *fb = esp_camera_fb_get(); //Getting picture from ESP cam
+
+    if(!fb) {
+      Serial.println("Camera capture failed...");
+      return;
+    } else {
+      Serial.println("Camera Captured ( OK )");
+    }
+
+//Get Camera Sensor and push to Client
+
+   const char *data = (const char*)fb->buf; //Cast
+    
+  Serial.print("Size of image:");
+  Serial.println(fb->len);
+  Serial.print("Shape->width:");
+  Serial.print(fb->width);
+  Serial.print("height:");
+  Serial.println(fb->height);
+
+  client.write((char*)&(fb->width),sizeof(fb->width)); //Character Buffer for Width (bytes)
+  client.write((char*)&(fb->height),sizeof(fb->height)); //Character Buffer for Height (bytes)
   //Main State Assertion:
 
 
@@ -114,7 +200,7 @@ void loop() {
       digitalWrite(stepPin,LOW); 
      }
 
-  delay(100); // One second delay
+  delay(25); // One second delay
   Serial.println("Rotated");
 
   JOYSTICK_BUTTON.loop();
@@ -185,4 +271,36 @@ void loop() {
   Serial.println(buttonValue);
   delay(200);
 
+}
+
+
+//Config Init function:
+
+void config_init() {
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sscb_sda = SIOD_GPIO_NUM;
+  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.frame_size = FRAMESIZE_QVGA;
+  config.pixel_format = PIXFORMAT_JPEG; // for streaming
+  //config.pixel_format = PIXFORMAT_RGB565; // for face detection/recognition
+  config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
+  config.fb_location = CAMERA_FB_IN_PSRAM;
+  config.jpeg_quality = 12;
+  config.fb_count = 1;
 }

@@ -100,7 +100,7 @@ void loop()
       Serial.println("Camera Captured ( OK )");
     }
 
-    const char *data = (const char*)fb->buf; // ??? Lol
+    const char *data = (const char*)fb->buf; // 
 // Image metadata.  Yes it should be cleaned up to use printf if the function is available
   Serial.print("Size of image:");
   Serial.println(fb->len);
