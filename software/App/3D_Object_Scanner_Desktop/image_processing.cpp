@@ -239,9 +239,9 @@ cv::Mat img_process() {
     cv::imshow("imgProc", proc_diff);
     cv::waitKey(0);
 
-    cv::namedWindow("perspective", cv::WINDOW_NORMAL);
-    cv::imshow("perspective", rotated_image);
-    cv::waitKey(0);
+    //cv::namedWindow("perspective", cv::WINDOW_NORMAL);
+    //cv::imshow("perspective", rotated_image);
+    //cv::waitKey(0);
 
     return rotated_image;
 }

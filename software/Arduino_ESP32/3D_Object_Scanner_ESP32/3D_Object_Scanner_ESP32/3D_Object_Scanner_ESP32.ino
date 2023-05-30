@@ -22,18 +22,22 @@
 
 #include "pins.h"
 #include "handler.h"
+
+  //Camera Related Dependencies:
+
+#include "esp_camera.h"  
 #include "camera_handle.cpp"
 
 WiFiMulti WiFiMulti;
 camera_config_t config;
 
+void config_init();
 
 //? WIFI
 
 const char *ssid_Router     = "wifina";  //input your wifi name
 const char *password_Router = "1326Gabi@";  //input your wifi passwords
 
-void config_init();
 
 //? Joystick Definitions:
 
@@ -90,6 +94,7 @@ struct {
 void setup() {
   //ESP32 - Wrover Cam Board runs on 115.2k baud
   Serial.begin(115200);
+  delay(10);
 
   //Activating Pins for Stepper Motor:
   pinMode(stepPin,OUTPUT); 
@@ -128,7 +133,6 @@ void setup() {
   s->set_hmirror(s, 0);      //1-Reverse left and right, 0-No operation
   s->set_brightness(s, 1);   //up the blightness just a bit
   s->set_saturation(s, -1);  //lower the saturation
-  delay(1000);
 
   // We start by connecting to a WiFi network
   WiFiMulti.addAP(ssid_Router, password_Router);
@@ -155,10 +159,12 @@ void loop() {
     const uint16_t port = 8888;
     const char * host = "10.0.0.88"; // IPv4 internal (of my Laptop)
 
-  //WIFI Client
+  //WIFI Client     
     WiFiClient client;
+    int TCP_Connect = client.connect(host,port);
+    delay(20);
 
-    if (!client.connect(host, port)) {
+    if (!TCP_Connect) {
         Serial.println("Connection failed.");
         Serial.println("Waiting 5 seconds before retrying...");
         delay(5000);
@@ -166,7 +172,9 @@ void loop() {
     }
 
     Serial.println("Connected to server ! ( OK )");
-    camera_fb_t *fb = esp_camera_fb_get(); //Getting picture from ESP cam
+    camera_fb_t *fb = NULL;
+    fb = esp_camera_fb_get();
+
 
     if(!fb) {
       Serial.println("Camera capture failed...");
@@ -186,20 +194,20 @@ void loop() {
   Serial.print("height:");
   Serial.println(fb->height);
 
-  client.write((char*)&(fb->width),sizeof(fb->width)); //Character Buffer for Width (bytes)
-  client.write((char*)&(fb->height),sizeof(fb->height)); //Character Buffer for Height (bytes)
+  //client.write((char*)&(fb->width),sizeof(fb->width)); //Character Buffer for Width (bytes)
+  //client.write((char*)&(fb->height),sizeof(fb->height)); //Character Buffer for Height (bytes)
+  
   //Main State Assertion:
 
 
   // Give the server a chance to receive the information before sending an acknowledgement.
   delay(1000);
-  getResponse(client);
+  //getResponse(client);
   Serial.print(data);
   client.write(data, fb->len);
-  esp_camera_fb_return(fb);
   
   Serial.println("Disconnecting...");
-  client.stop();
+  //client.stop();
 
   // put your main code here, to run repeatedly:
 
@@ -279,6 +287,10 @@ void loop() {
   Serial.print(menu.selected_component);
   Serial.print("BV: ");
   Serial.println(buttonValue);
+  delay(200);
+
+  esp_camera_fb_return(fb); //Return cam at the end?
+
   delay(200);
 
 }
