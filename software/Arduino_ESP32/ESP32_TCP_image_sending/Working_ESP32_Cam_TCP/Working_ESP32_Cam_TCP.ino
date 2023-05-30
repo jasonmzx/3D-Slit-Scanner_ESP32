@@ -1,6 +1,6 @@
 /*
  *  This sketch sends a message to a TCP server
- *
+ * WORKING
  */
 
 #include "esp_camera.h"
@@ -18,7 +18,7 @@ camera_config_t config;
 void config_init();
 //static camera_fb_t get_img();
 
-const char *ssid_Router     = "";  //input your wifi name
+const char *ssid_Router     = "wifina";  //input your wifi name
 const char *password_Router = "";  //input your wifi passwords
 
 void setup()
@@ -64,22 +64,24 @@ void setup()
 
 
 void loop()
-{
+{ 
 //    const uint16_t port = 80;
-//    const char * host = "192.168.1.1"; // ip or dns
+//    const char * host = "192.168.1.1"; // ip or
     const uint16_t port = 8888;
-    const char * host = "10.0.0.160"; // ip or dns
+    const char * host = "10.0.0.88"; // IPv4 internal (of my Laptop)
 
     Serial.print("Connecting to :");
     Serial.println(host);
 
-    // Use WiFiClient class to create TCP connections
-    WiFiClient client;
+    // // Use WiFiClient class to create TCP connections
+     WiFiClient client;
+    int TCP_Connect = client.connect(host,port);
+    delay(20);
 
-    if (!client.connect(host, port)) {
+    if (!TCP_Connect) {
         Serial.println("Connection failed.");
-        Serial.println("Waiting 5 seconds before retrying...");
-        delay(5000);
+        Serial.println("Waiting 0.5 seconds before retrying...");
+        delay(500);
         return;
     }
 
@@ -90,8 +92,11 @@ void loop()
     // for(int i = 0; i < 10; i++){
     //   client.print("Send this data to the server ");
     // }
+    
+    
     //camera_fb_t x = get_img();
-    camera_fb_t *fb = esp_camera_fb_get();
+    camera_fb_t *fb = NULL;
+    fb = esp_camera_fb_get();
 
     if(!fb) {
       Serial.println("Camera capture failed...");
@@ -100,7 +105,7 @@ void loop()
       Serial.println("Camera Captured ( OK )");
     }
 
-    const char *data = (const char*)fb->buf; // 
+    const char *data = (const char*)fb->buf; // ??? Lol
 // Image metadata.  Yes it should be cleaned up to use printf if the function is available
   Serial.print("Size of image:");
   Serial.println(fb->len);
@@ -109,24 +114,24 @@ void loop()
   Serial.print("height:");
   Serial.println(fb->height);
 
-  client.write((char*)&(fb->width),sizeof(fb->width)); //Character Buffer for Width (bytes)
-  client.write((char*)&(fb->height),sizeof(fb->height)); //Character Buffer for Height (bytes)
+  //client.write((char*)&(fb->width),sizeof(fb->width)); //Character Buffer for Width (bytes)
+  //client.write((char*)&(fb->height),sizeof(fb->height)); //Character Buffer for Height (bytes)
   
   // Give the server a chance to receive the information before sending an acknowledgement.
   delay(1000);
-  getResponse(client);
+  //getResponse(client);
   Serial.print(data);
   client.write(data, fb->len);
   esp_camera_fb_return(fb);
 
-  Serial.println("Disconnecting...");
-  client.stop();
+  Serial.println("bottom of loop...");
+  // client.stop();
 
-  delay(2000);
+  delay(1000);
 }
 
 void getResponse(WiFiClient client) {
-  byte buffer[8] = { NULL };
+  byte buffer[8] = { };
   while (client.available() > 0 || buffer[0] == NULL) {
     int len = client.available();
     Serial.println("Len" + len);
