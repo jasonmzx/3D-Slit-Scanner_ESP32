@@ -10,6 +10,7 @@
 #include <iostream>
 #include <functional>
 
+#include <Windows.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -44,6 +45,7 @@ void showMat(cv::Mat m) {
 void tcp_server_main()
 {
 
+
     AllocConsole();
     std::cout << "Server TCP/IP for incoming ESP-32 messages: ON PORT: 8887 " << std::endl;
 
@@ -74,7 +76,7 @@ void tcp_server_main()
         std::cout << "Bind OK." << std::endl;
     }
 
-    //Listen
+    //Listen with SOCKET s
     listen(s, 3);
 
     //Accept Incoming
@@ -109,6 +111,8 @@ void tcp_server_main()
 
             int iResult = recv(clientS, recvbuf, sizeof(recvbuf), 0); //
 
+            //while iResult isn't 0, imgCharBuffer keeps recieving pushes
+
             if (iResult > 0)
             {
                 send(clientS, recvbuf, iResult, 0);
@@ -118,13 +122,11 @@ void tcp_server_main()
                 for (int z = 0; z < iResult; z++) {
                     imgCharBuffer.push_back((unsigned char)recvbuf[z]);
                 }
-
                 std::cout << "Pushed another chunk into the Matrix Buffer" << std::endl;
 
-                //std::cout << "NEW LOOP: " << std::endl;
-                //std::cout << recvbuf << std::endl;
-                //std::cout << "buffSize: " << imgCharBuffer.size() << std::endl;
             }
+
+
             else if (imgCharBuffer.size() != 0) {
 
                 std::cout << "Iterating thru vec<char>" << imgCharBuffer.size() << std::endl;
@@ -134,15 +136,52 @@ void tcp_server_main()
 
                 auto casted = cv::imdecode(imgCharBuffer, cv::IMREAD_COLOR); //Potential Errors with this 
 
+
+                //Save to output img 
+
+                if (casted.empty())
+                {
+                    std::cout << "Error decoding the image." << std::endl;
+                }
+                else
+                {
+                    matrixBuffer.push_back(casted);
+                    std::cout << "CASTED TO MATRIX!" << std::endl;
+                    bufferCount = 0;
+                    showMat(casted);
+
+                    // Save the matrix as a JPG file
+                    std::string filename = "/output.jpg";
+                    bool saveResult = cv::imwrite(filename, casted);
+                    if (!saveResult)
+                    {
+                        std::cout << "Error saving the image as " << filename << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "Image saved as " << filename << std::endl;
+                    }
+                }
+
                 //Now casted is a Mat type (cv::Mat)
                 matrixBuffer.push_back(casted);
-                std::cout << "Matrix pushed into Matrix Buffer !" << std::endl;
+
+                
+                std::cout << "CASTED TO MATRIX !" << std::endl;
                 bufferCount = 0;
                 showMat(casted);
+
+                // Send acknowledgment message to the client
+                int ack = 200;
+                int ackSize = sizeof(ack);
+                int sendResult = send(clientS, reinterpret_cast<const char*>(&ack), ackSize, 0);
+
                 closesocket(clientS);
                 break;
 
             }
+
+            //Nothing is being sent from the ESP's End
             else {
                 std::printf("elsing\n");
                 closesocket(clientS);
