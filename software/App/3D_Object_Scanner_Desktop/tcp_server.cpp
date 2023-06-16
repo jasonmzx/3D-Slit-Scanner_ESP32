@@ -7,10 +7,15 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include <iostream>
 #include <functional>
 
+#include <random>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
+
 #include <Windows.h>
+#include <fstream>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -31,6 +36,39 @@ public:
 //https://stackoverflow.com/questions/56919006/i-can-only-receive-one-word-winsock-c-tcp-ip-server-and-client
 
 
+std::string generateRandomFilename() {
+    const std::string charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    const int length = 10;
+
+    std::mt19937 rng(static_cast<unsigned int>(time(nullptr)));
+    std::uniform_int_distribution<int> distribution(0, charset.size() - 1);
+
+    std::stringstream ss;
+    for (int i = 0; i < length; ++i) {
+        ss << charset[distribution(rng)];
+    }
+
+    return ss.str();
+}
+
+bool folderExists(const std::string& folderPath)
+{
+    DWORD fileAttributes = GetFileAttributesA(folderPath.c_str());
+    return (fileAttributes != INVALID_FILE_ATTRIBUTES && (fileAttributes & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+bool createFolder(const std::string& folderPath)
+{
+    if (!CreateDirectoryA(folderPath.c_str(), NULL))
+    {
+        std::cout << "Failed to create the folder: " << folderPath << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+
 void showMat(cv::Mat m) {
     cv::imshow("mat", m);
 
@@ -44,7 +82,21 @@ void showMat(cv::Mat m) {
 
 void tcp_server_main()
 {
+    //Initialize Data Folder
+    std::string instanceFolder = generateRandomFilename();
+    std::string folderPath = "../../../data/" + instanceFolder;
 
+    if (folderExists(folderPath))
+    {
+        std::cout << "The folder already exists: " << folderPath << std::endl;
+    }
+    else
+    {
+        if (createFolder(folderPath))
+        {
+            std::cout << "Folder created successfully: " << folderPath << std::endl;
+        }
+    }
 
     AllocConsole();
     std::cout << "Server TCP/IP for incoming ESP-32 messages: ON PORT: 8887 " << std::endl;
@@ -95,6 +147,7 @@ void tcp_server_main()
         }
         std::cout << "User is connected." << std::endl;
 
+
         char recvbuf[4096];
 
         int bufferCount = 0;
@@ -129,54 +182,84 @@ void tcp_server_main()
 
             else if (imgCharBuffer.size() != 0) {
 
+                //Assert for the case where Angle Information is being sent in after the last IMG:
+
+                if (imgCharBuffer.size() < 3) {
+                    
+                    std::cout << "######### ANGLE #######" << std::endl;
+
+                    for (auto c : imgCharBuffer) {
+                        std::cout << c;
+                    }
+                    break;
+                }
+
                 std::cout << "Iterating thru vec<char>" << imgCharBuffer.size() << std::endl;
+
+
+
                 for (auto c : imgCharBuffer) {
                     std::cout << c;
                 }
 
                 auto casted = cv::imdecode(imgCharBuffer, cv::IMREAD_COLOR); //Potential Errors with this 
 
+                if (casted.empty()) {
+                     std::cout << "Error decoding the image." << std::endl;  
+                }
+                else {
+                       std::string filename = folderPath +"/TMP_"+generateRandomFilename()+".jpg";
+                       bool saveResult = cv::imwrite(filename, casted);
+
+                       if (!saveResult)
+                               {
+                                   std::cout << "Error saving the image as " << filename << std::endl;
+                               }
+                               else
+                               {
+                                   std::cout << "Image saved as " << filename << std::endl;
+                               }
+                }
 
                 //Save to output img 
 
-                if (casted.empty())
-                {
-                    std::cout << "Error decoding the image." << std::endl;
-                }
-                else
-                {
-                    matrixBuffer.push_back(casted);
-                    std::cout << "CASTED TO MATRIX!" << std::endl;
-                    bufferCount = 0;
-                    showMat(casted);
+                //if (casted.empty())
+                //{
+                //    std::cout << "Error decoding the image." << std::endl;
+                //}
+                //else
+                //{
+                //    matrixBuffer.push_back(casted);
+                //    std::cout << "CASTED TO MATRIX!" << std::endl;
+                //    bufferCount = 0;
+                //    //showMat(casted);
 
-                    // Save the matrix as a JPG file
-                    std::string filename = "/output.jpg";
-                    bool saveResult = cv::imwrite(filename, casted);
-                    if (!saveResult)
-                    {
-                        std::cout << "Error saving the image as " << filename << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "Image saved as " << filename << std::endl;
-                    }
-                }
+                //    // Save the matrix as a JPG file
+                //    std::string filename = "/output.jpg";
+                //    bool saveResult = cv::imwrite(filename, casted);
+                //    if (!saveResult)
+                //    {
+                //        std::cout << "Error saving the image as " << filename << std::endl;
+                //    }
+                //    else
+                //    {
+                //        std::cout << "Image saved as " << filename << std::endl;
+                //    }
+                //}
 
                 //Now casted is a Mat type (cv::Mat)
                 matrixBuffer.push_back(casted);
-
                 
                 std::cout << "CASTED TO MATRIX !" << std::endl;
+
+               
                 bufferCount = 0;
                 showMat(casted);
 
-                // Send acknowledgment message to the client
-                int ack = 200;
-                int ackSize = sizeof(ack);
-                int sendResult = send(clientS, reinterpret_cast<const char*>(&ack), ackSize, 0);
+                //Read for the Angle
 
                 closesocket(clientS);
+                
                 break;
 
             }

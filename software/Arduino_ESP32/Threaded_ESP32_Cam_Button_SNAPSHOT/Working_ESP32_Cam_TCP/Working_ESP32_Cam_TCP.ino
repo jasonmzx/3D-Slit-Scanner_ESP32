@@ -35,6 +35,9 @@ const int dirPin = 33;
 //? Small Button Pin
 const int buttonPin = 15;
 
+//? Line Lazer Pin
+const int lazerPin = 2;
+
 
 
 void setup()
@@ -48,6 +51,7 @@ void setup()
     //Activating Pins for Stepper Motor:
     pinMode(stepPin,OUTPUT); 
     pinMode(dirPin,OUTPUT);
+    pinMode(lazerPin, OUTPUT);
 
     pinMode(buttonPin, INPUT);
 
@@ -89,7 +93,7 @@ void setup()
 }
 
 
-int z = 0;
+
 int buttonState = 0;
 int machineState = 0;
 
@@ -104,20 +108,22 @@ void loop() {
   }
   
   if(machineState == 1){
-    z++;
-if(z > 100) {
-//    const uint16_t port = 80;
-//    const char * host = "192.168.1.1"; // ip or
+    delay(1000);
+
     const uint16_t port = 8888;
     const char * host = "10.0.0.88"; // IPv4 internal (of my Laptop)
 
     Serial.print("Connecting to :");
     Serial.println(host);
 
+    digitalWrite(lazerPin, HIGH);
     // Use WiFiClient class to create TCP connections
     WiFiClient client;
     captureImage(client,port,host);
-    
+
+    delay(500);    
+    digitalWrite(lazerPin, LOW);
+    captureImage(client,port,host);
   //motor rotation
      int microDelay = 1000;
      for(int x = 0; x < 200; x++) {
@@ -125,16 +131,27 @@ if(z > 100) {
       delayMicroseconds(microDelay); 
       digitalWrite(stepPin,LOW); 
      }
-    machineState = 0;
-} 
+
+    sendAcknowledgement(client, port, host, 55);
+
+    machineState = 0; 
   }
-
-
-  
-
     
 }
 
+void sendAcknowledgement(WiFiClient client, u_int16_t port, const char* host, uint16_t angle) {
+    int TCP_Connect = client.connect(host,port);
+    if (!TCP_Connect) {
+        Serial.println("[ACK] Connection failed, No TCP Stream Available");
+        delay(500);
+        return;
+    }
+
+    char angleStr[6];
+     snprintf(angleStr, sizeof(angleStr), "%u", angle);
+
+    client.write(angleStr);
+}
 
 
 void captureImage(WiFiClient client, u_int16_t port, const char* host) {
