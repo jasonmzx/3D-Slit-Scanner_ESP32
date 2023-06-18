@@ -33,19 +33,16 @@ GLfloat normalizeCoordinate(int value, int width) {
 VerticeObject detect_lazer_projection(cv::Mat image) {
 
     //VerticeObject creation 
-
     VerticeObject obj;
 
     //Image Height & Width:
-
     int n_rows = image.rows;
     int n_cols = image.cols;
 
-    //Origin Point:
+    //Definitions
+    std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
-    std::vector<GLfloat> xyz_slice = { 0.0 , 0.0, 0.0 , 1.0f, 0.0f, 0.0f };
-
-    std::vector<cv::Point> xyPixels; // Store bright pixels as points (X,Y)
+    std::vector<cv::Point> xyPixels = {}; // Store bright pixels as points (X,Y)
 
     // Loop through each pixel row by row
     for (int row = 0; row < n_rows; row++) {
@@ -54,7 +51,7 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
         std::vector<int> x_slice; // Horizontal Slice at each row
 
-        //? TODO, change 500 back to `n_cols`
+        //? TODO, change 1000 back to `n_cols`
 
         for (int k = 1; k < 360; k+= 2) {
             for (int col = 0; col < 1000; col++) {
@@ -98,7 +95,7 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
                 GLfloat normalX = normalizeCoordinate(middle, n_rows);
 
-                normalX = normalX * cos(k * pi / 180);
+                normalX = normalX * cos(k * pi / 180); //! Multiply by Angle, K for the circular orientaiton
 
                 GLfloat normalY = normalizeCoordinate(row, n_cols) + offset;
 
@@ -107,25 +104,30 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
                 GLfloat normalZ = normalizeCoordinate(finalResult, n_cols);
 
-                normalZ = normalZ * sin(k * pi / 180);
-                //Get multiple angles: 
+                normalZ = normalZ * sin(k * pi / 180); //! Multiply by Angle, K for the circular orientaiton
+                
 
-                //for (int k = 0; k < 3; k++) {
-
-                //    GLfloat angledNormalX = normalX;
-                //    GLfloat angledNormalZ = normalZ;
-                //    xyz_slice.reserve(6);
-                //    xyz_slice.insert(xyz_slice.end(), { angledNormalX, normalY, angledNormalZ, 0.0f, 1.0f, 0.0f });
-
-                //}
-
-                //offsetZ += 0.01;
-
-               // std::cout << "ROW: " << row << " K: " << k << "normalX :" << normalX << " normalY: " << normalY << " normalZ: " << normalZ << std::endl;
 
                 //[ X Y Z  R G B , ... , ... ]
                 xyz_slice.reserve(6);
-                xyz_slice.insert(xyz_slice.end(), { normalX, normalY, normalZ, 0.0f, 1.0f, 0.0f });
+
+        
+            GLfloat cubeSize = 0.01; // Size of the cube
+
+
+            //Vanilla Insertion (just a point):
+              //  xyz_slice.insert(xyz_slice.end(), { normalX, normalY, normalZ, 0.0f, 1.0f, 0.0f });
+            // Inserting the vertices of the cube
+                xyz_slice.insert(xyz_slice.end(), {
+                    normalX - cubeSize, normalY - cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 1 (bottom-left-back)
+                    normalX + cubeSize, normalY - cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 2 (bottom-right-back)
+                    normalX + cubeSize, normalY + cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 3 (top-right-back)
+                    normalX - cubeSize, normalY + cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 4 (top-left-back)
+                    normalX - cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 5 (bottom-left-front)
+                    normalX + cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 6 (bottom-right-front)
+                    normalX + cubeSize, normalY + cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 7 (top-right-front)
+                    normalX - cubeSize, normalY + cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f  // Vertex 8 (top-left-front)
+                 });
             } //endof col for loop
         
         } //endof k loop
@@ -226,13 +228,6 @@ cv::Mat img_process() {
 
     cv::Scalar neonGreen(57, 255, 20); // BGR color values for neon green
 
-    //for (int i = 0; i < perspective_crop.size(); i++)
-    //{
-    //    cv::Point p1 = perspective_crop[i];
-    //    cv::Point p2 = perspective_crop[(i + 1) % perspective_crop.size()]; // Connect the last point with the first point
-
-    //    cv::line(proc_diff, p1, p2, neonGreen, 2);
-    //}
 
     cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
     cv::resizeWindow("imgProc", 1000, 1000);
@@ -246,30 +241,70 @@ cv::Mat img_process() {
     return rotated_image;
 }
 
-
 VerticeObject gen() {
 
     cv::Mat processed_matrix = img_process();
 
-    VerticeObject obj = detect_lazer_projection(processed_matrix); 
+    VerticeObject obj = detect_lazer_projection(processed_matrix); // Generates Vertices only essentially
 
     //Add Indices:
     std::cout << "Vertex Len: " << obj.vertices_length << std::endl;
 
-    obj.indices = new GLuint[obj.vertices_length];
+            std::vector<GLuint> indices = {
+        0, 1, 2, // First triangle (bottom face)
+        0, 2, 3, // Second triangle (bottom face)
+        4, 5, 6, // Third triangle (top face)
+        4, 6, 7, // Fourth triangle (top face)
+        0, 4, 7, // Fifth triangle (left face)
+        0, 7, 3, // Sixth triangle (left face)
+        1, 5, 6, // Seventh triangle (right face)
+        1, 6, 2, // Eighth triangle (right face)
+        0, 1, 5, // Ninth triangle (back face)
+        0, 5, 4, // Tenth triangle (back face)
+        3, 2, 6, // Eleventh triangle (front face)
+        3, 6, 7  // Twelfth triangle (front face)
+            };
+    //obj.indices = new GLuint[obj.vertices_length];
+            int numCubes = (obj.vertices_length / sizeof(GLfloat)) / 8;
 
-    int incr = 0;
+            for (int i = 0; i < numCubes; i++) {
+                GLuint offset = i * 8;
 
-    for (int j = 0; j < (obj.vertices_length / 2) ; j++) { // 0 1 2, 0 , 2, 3 0, 3,4
-        obj.indices[j] = 0;
-        obj.indices[j + 1] = incr + 1;
-        obj.indices[j + 2] = incr + 2;
-        incr++;
-        j = j + 2;
-    }
+                indices.insert(indices.end(), {
+                    0 + offset, 1 + offset, 2 + offset, // First triangle (bottom face)
+                    0 + offset, 2 + offset, 3 + offset, // Second triangle (bottom face)
+                    4 + offset, 5 + offset, 6 + offset, // Third triangle (top face)
+                    4 + offset, 6 + offset, 7 + offset, // Fourth triangle (top face)
+                    0 + offset, 4 + offset, 7 + offset, // Fifth triangle (left face)
+                    0 + offset, 7 + offset, 3 + offset, // Sixth triangle (left face)
+                    1 + offset, 5 + offset, 6 + offset, // Seventh triangle (right face)
+                    1 + offset, 6 + offset, 2 + offset, // Eighth triangle (right face)
+                    0 + offset, 1 + offset, 5 + offset, // Ninth triangle (back face)
+                    0 + offset, 5 + offset, 4 + offset, // Tenth triangle (back face)
+                    3 + offset, 2 + offset, 6 + offset, // Eleventh triangle (front face)
+                    3 + offset, 6 + offset, 7 + offset  // Twelfth triangle (front face)
+                    });
+            }
 
-    obj.indices_length = incr * 3 * sizeof(GLuint); // Object Indices Size is N. Increments * N. in vertices * size of GL int
+            obj.indices = new GLuint[indices.size()];
+            std::copy(indices.begin(), indices.end(), obj.indices);
 
+    //? Old Implementation with points being connected to a root point
+    //int incr = 0;
+    
+    //for (int j = 0; j < (obj.vertices_length / 2) ; j++) { // 0 1 2, 0 , 2, 3 0, 3,4
+    //    obj.indices[j] = 0;
+    //    obj.indices[j + 1] = incr + 1;
+    //    obj.indices[j + 2] = incr + 2;
+    //    incr++;
+    //    j = j + 2;
+    //}
+    //obj.indices_length = incr * 3 * sizeof(GLuint); // Object Indices Size is N. Increments * N. in vertices * size of GL int
+
+    /*std::cout << "INCR N#: " << incr << std::endl;*/
+    //? ENDOF: Old Implementation with points being connected to a root point
+
+    obj.indices_length = indices.size() * sizeof(GLuint);
     return obj;
 
 }
