@@ -80,8 +80,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Jason-Pavillon\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Jason-Pavillon\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jason\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jason\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
