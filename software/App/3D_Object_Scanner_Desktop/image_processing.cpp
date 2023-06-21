@@ -1,6 +1,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -43,6 +44,23 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
     std::vector<cv::Point> xyPixels = {}; // Store bright pixels as points (X,Y)
 
+// Define the camera matrix
+    double fx = 550.0;
+    double fy = 550.0;
+    double cx = 440.0;
+    double cy = 240.0;
+    cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
+
+    // Define the distortion coefficients
+    double k1 = 0.1;
+    double k2 = 0.01;
+    double p1 = 0.0;
+    double p2 = 0.0;
+    double k3 = 0.01;
+    cv::Mat distCoeffs = (cv::Mat_<double>(5, 1) << k1, k2, p1, p2, k3);
+
+
+    cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(n_cols, n_rows), 1);
     // Loop through each pixel row by row
     for (int row = 0; row < n_rows; row++) {
 
@@ -88,21 +106,34 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
                 int middle = x_slice[x_slice.size() / 2];
                 cv::Point xyPoint(middle, row);
 
+                //Get X, Y in Vec of Point2f (1 entry)
+
+                std::vector<cv::Point2f> srcPoints;
+                srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+                std::vector<cv::Point2f> dstPoints;
+                
+                // Apply the camera calibration and distortion correction
+                cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+
                 xyPixels.push_back(xyPoint); //Push to OpenCV Image processing render
 
                 GLfloat offset = 0.5;
 
-                GLfloat normalX = normalizeCoordinate( static_cast<float>(middle) , n_rows);
+                GLfloat normalX = normalizeCoordinate( static_cast<float>(dstPoints[0].x) , n_rows);
+                GLfloat normalY = normalizeCoordinate(static_cast<float>(dstPoints[0].y), n_cols) + offset;
 
-                normalX = normalX * cos(k * pi / 180); //! Multiply by Angle, K for the circular orientaiton
-
-                GLfloat normalY = normalizeCoordinate(static_cast<float>(row), n_cols) + offset;
-
-                double result = middle / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+                double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
 
                 GLfloat normalZ = normalizeCoordinate(static_cast<float>(result), n_cols);
 
-                normalZ = normalZ * sin(k * pi / 180); //! Multiply by Angle, K for the circular orientaiton
+
+                GLfloat theta = k * pi / 180; // Convert angle to radians
+
+                normalX = normalX * cos(theta); // Apply rotation matrix
+                normalZ = normalZ * sin(theta); // Apply rotation matrix
+
 
                 //[ X Y Z  R G B , ... , ... ]
                 xyz_slice.reserve(6);
@@ -119,8 +150,8 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
                     normalX + cubeSize, normalY - cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 2 (bottom-right-back)
                     normalX + cubeSize, normalY + cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 3 (top-right-back)
                     normalX - cubeSize, normalY + cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 4 (top-left-back)
-                    normalX - cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 5 (bottom-left-front)
-                    normalX + cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 6 (bottom-right-front)
+                    normalX - cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 5 (bottom-left-front)
+                    normalX + cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 6 (bottom-right-front)
                     normalX + cubeSize, normalY + cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 7 (top-right-front)
                     normalX - cubeSize, normalY + cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f  // Vertex 8 (top-left-front)
                  });
@@ -160,8 +191,8 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
 cv::Mat img_process() {
 
-	std::string no_cast_img_path = "Resources/proto_no_lazer.png";
-	std::string casted_img_path = "Resources/proto_lazer.png";
+	std::string no_cast_img_path = "Resources/proto2_no_lazer.png";
+	std::string casted_img_path = "Resources/proto2_lazer.png";
 
 	//Defining image matrices
 
@@ -234,7 +265,7 @@ cv::Mat img_process() {
     //cv::imshow("perspective", rotated_image);
     //cv::waitKey(0);
 
-    return rotated_image;
+    return proc_diff;
 }
 
 VerticeObject gen() {
