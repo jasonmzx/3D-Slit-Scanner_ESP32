@@ -12,13 +12,11 @@
 const double pi = 3.14159265358979323846;
 
 
-GLfloat normalizeCoordinate(int value, int width) {
+GLfloat normalizeCoordinate(float value, float width) {
     GLfloat normalized;
 
-    if (width == 0) {
-        // Handle division by zero
-        std::cerr << "Error: Width cannot be zero" << std::endl;
-        // You can also throw an exception or return a default value here
+    if (fabs(width) < 1e-7) {  // check if width is too close to zero
+        std::cerr << "Error: Width cannot be too close to zero" << std::endl;
         normalized = 0;
     }
     else {
@@ -27,6 +25,7 @@ GLfloat normalizeCoordinate(int value, int width) {
 
     return normalized * -1;
 }
+
 
 
 
@@ -93,20 +92,17 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
                 GLfloat offset = 0.5;
 
-                GLfloat normalX = normalizeCoordinate(middle, n_rows);
+                GLfloat normalX = normalizeCoordinate( static_cast<float>(middle) , n_rows);
 
                 normalX = normalX * cos(k * pi / 180); //! Multiply by Angle, K for the circular orientaiton
 
-                GLfloat normalY = normalizeCoordinate(row, n_cols) + offset;
+                GLfloat normalY = normalizeCoordinate(static_cast<float>(row), n_cols) + offset;
 
                 double result = middle / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
-                int finalResult = static_cast<int>(result); // Convert result to integer 
 
-                GLfloat normalZ = normalizeCoordinate(finalResult, n_cols);
+                GLfloat normalZ = normalizeCoordinate(static_cast<float>(result), n_cols);
 
                 normalZ = normalZ * sin(k * pi / 180); //! Multiply by Angle, K for the circular orientaiton
-                
-
 
                 //[ X Y Z  R G B , ... , ... ]
                 xyz_slice.reserve(6);
