@@ -79,10 +79,34 @@ void showMat(cv::Mat m) {
     if (k == 'ESC') return;
 }
 
+bool saveMat(cv::Mat m, std::string folderPath, int iter, std::string angleStr) {
+    if (m.empty()) {
+        std::cout << "Error decoding the image." << std::endl;
+        return 1;
+    }
+    else {
+        std::string filename = folderPath + '/' + std::to_string(iter) + '_' + angleStr + ".jpg";
+        bool saveResult = cv::imwrite(filename, m);
+
+        if (!saveResult)
+        {
+            std::cout << "Error saving the image as " << filename << std::endl;
+            return 1;
+        }
+        else
+        {
+            std::cout << "Image saved as " << filename << std::endl;
+            return 0;
+        }
+    }
+}
+
+
 
 void tcp_server_main()
 {
-    //Initialize Data Folder
+    //& Initialize Data Folder
+
     std::string instanceFolder = generateRandomFilename();
     std::string folderPath = "../../../data/" + instanceFolder;
 
@@ -98,8 +122,10 @@ void tcp_server_main()
         }
     }
 
+    //& Allocate Console (for thread):
+
     AllocConsole();
-    std::cout << "Server TCP/IP for incoming ESP-32 messages: ON PORT: 8887 " << std::endl;
+    std::cout << "Server TCP/IP for incoming ESP-32 messages: ON PORT: 8888 " << std::endl;
 
     WSADATA wsa;
 
@@ -133,6 +159,8 @@ void tcp_server_main()
 
     //Accept Incoming
 
+    std::vector<cv::Mat> tempMatrixBuffer = {};
+
     do
     {
 
@@ -153,7 +181,6 @@ void tcp_server_main()
         int bufferCount = 0;
         int imgHeight, imgWidth;
 
-        std::vector<cv::Mat> matrixBuffer = {};
         std::vector<unsigned char> imgCharBuffer = {};
 
 
@@ -186,12 +213,24 @@ void tcp_server_main()
 
                 if (imgCharBuffer.size() < 3) {
                     
-                    std::cout << "######### ANGLE #######" << std::endl;
+                    std::cout << "########## IMAGE ACKNOWLEDGEMENT ##########" << std::endl;
 
-                    for (auto c : imgCharBuffer) {
-                        std::cout << c;
+                    // Angle String:
+                    std::string angleStr(imgCharBuffer.begin(), imgCharBuffer.end());
+
+
+
+                    std::cout << "Matrix Buffer Size: " << tempMatrixBuffer.size() << std::endl;
+
+                    for (int i = 0; i < tempMatrixBuffer.size(); i++) {
+                        const cv::Mat& mat = tempMatrixBuffer[i];
+                        saveMat(mat, folderPath, i, angleStr);
                     }
+
+                    tempMatrixBuffer = {};
+                        
                     break;
+
                 }
 
                 std::cout << "Iterating thru vec<char>" << imgCharBuffer.size() << std::endl;
@@ -204,54 +243,12 @@ void tcp_server_main()
 
                 auto casted = cv::imdecode(imgCharBuffer, cv::IMREAD_COLOR); //Potential Errors with this 
 
-                if (casted.empty()) {
-                     std::cout << "Error decoding the image." << std::endl;  
-                }
-                else {
-                       std::string filename = folderPath +"/TMP_"+generateRandomFilename()+".jpg";
-                       bool saveResult = cv::imwrite(filename, casted);
-
-                       if (!saveResult)
-                               {
-                                   std::cout << "Error saving the image as " << filename << std::endl;
-                               }
-                               else
-                               {
-                                   std::cout << "Image saved as " << filename << std::endl;
-                               }
-                }
-
-                //Save to output img 
-
-                //if (casted.empty())
-                //{
-                //    std::cout << "Error decoding the image." << std::endl;
-                //}
-                //else
-                //{
-                //    matrixBuffer.push_back(casted);
-                //    std::cout << "CASTED TO MATRIX!" << std::endl;
-                //    bufferCount = 0;
-                //    //showMat(casted);
-
-                //    // Save the matrix as a JPG file
-                //    std::string filename = "/output.jpg";
-                //    bool saveResult = cv::imwrite(filename, casted);
-                //    if (!saveResult)
-                //    {
-                //        std::cout << "Error saving the image as " << filename << std::endl;
-                //    }
-                //    else
-                //    {
-                //        std::cout << "Image saved as " << filename << std::endl;
-                //    }
-                //}
+                
 
                 //Now casted is a Mat type (cv::Mat)
-                matrixBuffer.push_back(casted);
+                tempMatrixBuffer.push_back(casted);
                 
                 std::cout << "CASTED TO MATRIX !" << std::endl;
-
                
                 bufferCount = 0;
                 showMat(casted);
