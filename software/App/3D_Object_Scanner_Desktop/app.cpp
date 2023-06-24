@@ -51,6 +51,8 @@ std::thread TCP_server_thread = std::thread(tcp_server_main);
 //	 0.0f, 0.8f,  0.0f,     1.0f, 0.41f, 0.71f,	2.5f, 5.0f,
 //};
 
+std::vector<LazerSlice> gliz = preproc_image_dataset();
+
 VerticeObject load = gen(); //Generates Vertices & Indices
 
 GLfloat* vertices = load.vertices;
@@ -62,7 +64,6 @@ int main()
 {
 	std::cout << "Indices (First 20): " << std::endl;
 
-	std::vector<LazerSlice> gliz = dataset_process("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_elephant");
 
 	for (int i = 0; i < 20; i++) {
 		std::cout << indices[i] << ", ";

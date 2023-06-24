@@ -341,7 +341,7 @@ bool folderExists2(const std::string& folderPath)
     return (fileAttributes != INVALID_FILE_ATTRIBUTES && (fileAttributes & FILE_ATTRIBUTE_DIRECTORY)); //Ternary check if it exists, return BOOLEAN
 }
 
-std::vector<LazerSlice> dataset_process(std::string dataset_folder_path) {
+std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
     
     std::vector<LazerSlice> lazerSlices = {};
 
@@ -411,8 +411,102 @@ std::vector<LazerSlice> dataset_process(std::string dataset_folder_path) {
         }
     }
 
-
     std::cout << "VECTOR DS SIZE: " << lazerSlices.size() << std::endl;
 
     return lazerSlices;
+}
+
+int getMiddleElement(std::vector<int>& int_list) {
+    if (int_list.empty()) {
+        throw std::invalid_argument("Vector is empty.");
+    }
+
+    int middleIndex = int_list.size() / 2;
+    return int_list[middleIndex];
+}
+
+std::vector<cv::Point> extract_lazer_from_cv_mat(cv::Mat image) {
+    std::vector<cv::Point> points_of_interest;
+
+    // Image Height & Width:
+    int n_rows = image.rows;
+    int n_cols = image.cols;
+
+    for (int row = 0; row < n_rows; row++) {
+        std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
+
+        for (int col = 0; col < n_cols; col++) { // You had 'row++' here
+            if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
+                cv::Vec3b pixel = image.at<cv::Vec3b>(row, col);
+                int r = pixel[2];
+                int g = pixel[1];
+                int b = pixel[0];
+
+                float brightness = (1 * r + 0.7 * g + 0.7 * b);
+
+                // TODO: Generate 3D points for point cloud
+                if (brightness > 40) { // Brightness threshold of 150, adjust as needed
+                    activated_cols.push_back(col);
+                }
+            }
+        }
+
+        if (!activated_cols.empty()) {
+            int middle = getMiddleElement(activated_cols);
+            cv::Point xyPoint(middle, row);
+            points_of_interest.push_back(xyPoint);
+        }
+    }
+
+    for (cv::Point point : points_of_interest) {
+        cv::circle(image, point, 1, cv::Scalar(0, 255, 0), -1);
+    }
+
+    cv::namedWindow("Test", cv::WINDOW_NORMAL);
+    cv::resizeWindow("Test", 1000, 1000);
+    cv::imshow("Test", image);
+    cv::waitKey(0);
+
+    return points_of_interest;
+}
+
+
+std::vector<LazerSlice> preproc_image_dataset() {
+
+    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_lego");
+
+    int size = 3;
+    double sigX = 3; double sigY = 3;
+
+    for (std::size_t i = 0; i < dataset.size(); ++i) {
+
+        cv::Mat proc_diff;
+        LazerSlice& slice = dataset[i];
+
+        //Some preprocessing:
+        
+        //! Step 1: Gaussian Blur (Eliminates some noise)
+        
+        cv::Mat processed_off, processed_on;
+
+        cv::GaussianBlur(slice.off_img, processed_off, cv::Size(size, size), sigX, sigY); //no_cast
+        cv::GaussianBlur(slice.on_img, processed_on, cv::Size(size, size), sigX, sigY); //casted
+        
+        //! Step 2. Binary or Absolute Difference between Blurred diffs
+
+        cv::absdiff(processed_off, processed_on, proc_diff); 
+
+        //! Step 3. Lazer Extraction step:
+
+        std::vector<cv::Point> points_of_interest = extract_lazer_from_cv_mat(proc_diff);
+
+        //cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
+        //cv::resizeWindow("imgProc", 1000, 1000);
+        //cv::imshow("imgProc", proc_diff);
+        //cv::waitKey(0);
+    }
+
+    
+    return dataset;
+
 }
