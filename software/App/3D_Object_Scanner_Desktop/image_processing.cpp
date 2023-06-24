@@ -2,11 +2,13 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+#include<glad/glad.h>
+
+//Windows Import
+#include <windows.h>
 
 #include <iostream>
 #include <cmath>
-
-#include<glad/glad.h>
 
 #include "image_processing.h" 
 
@@ -26,9 +28,6 @@ GLfloat normalizeCoordinate(float value, float width) {
 
     return normalized * -1;
 }
-
-
-
 
 VerticeObject detect_lazer_projection(cv::Mat image) {
 
@@ -191,8 +190,8 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
 cv::Mat img_process() {
 
-	std::string no_cast_img_path = "Resources/proto2_no_lazer.png";
-	std::string casted_img_path = "Resources/proto2_lazer.png";
+	std::string no_cast_img_path = "Resources/proto1_no_lazer.png";
+	std::string casted_img_path = "Resources/proto1_lazer.png";
 
 	//Defining image matrices
 
@@ -334,4 +333,86 @@ VerticeObject gen() {
     obj.indices_length = indices.size() * sizeof(GLuint);
     return obj;
 
+}
+
+bool folderExists2(const std::string& folderPath)
+{
+    DWORD fileAttributes = GetFileAttributesA(folderPath.c_str()); //Get the folder
+    return (fileAttributes != INVALID_FILE_ATTRIBUTES && (fileAttributes & FILE_ATTRIBUTE_DIRECTORY)); //Ternary check if it exists, return BOOLEAN
+}
+
+std::vector<LazerSlice> dataset_process(std::string dataset_folder_path) {
+    
+    std::vector<LazerSlice> lazerSlices = {};
+
+    if (folderExists2(dataset_folder_path)) { //Using Windows.h binding for Filesystem I.O
+        WIN32_FIND_DATAA findFileData;
+        HANDLE hFind;
+
+        std::string search_path = dataset_folder_path + "/*.*"; 
+        hFind = FindFirstFileA(search_path.c_str(), &findFileData);
+
+        if (hFind != INVALID_HANDLE_VALUE) {
+            
+            //Do while is iterating over all imgs of that Dataset
+            do {
+                //? Skip "." and ".."
+                if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0)
+                    continue;
+
+
+                std::cout << findFileData.cFileName << std::endl;
+     
+
+
+                // Parse the filename
+                int captureInt;
+                int num1, num2;
+                sscanf_s(findFileData.cFileName, "%d_%d-%d", &captureInt, &num1, &num2);
+                
+                bool lazerOn = captureInt != 1;
+                float angle = num1 + num2 / pow(10, std::to_string(num2).length());
+
+                //get active on lzer
+
+
+                if (lazerOn) {
+
+                    LazerSlice s;
+
+                    // Construct full file path - ON
+                    std::string full_path = dataset_folder_path + "/" + findFileData.cFileName;
+                    
+
+                    //Get corresponding off img to do binary diff - OFF
+                    std::string off_img_path = findFileData.cFileName;
+                    off_img_path[0] = '1';
+                    std::string off_full_path = dataset_folder_path + "/" + off_img_path;
+
+                    cv::Mat ON = cv::imread(full_path);
+                    cv::Mat OFF = cv::imread(off_full_path);
+
+                    //Add cv mats to object
+
+                    if (!ON.empty()) { 
+                        s.on_img = ON; 
+                        s.angle = angle; //since we load angle info from ON img
+                    }
+                    if (!OFF.empty()) { s.off_img = OFF; }
+
+                    lazerSlices.push_back(s);
+                }
+
+                std::cout << "LazerOn " << lazerOn << " angle : " << angle << std::endl;
+
+            } while (FindNextFileA(hFind, &findFileData) != 0);
+
+            FindClose(hFind);
+        }
+    }
+
+
+    std::cout << "VECTOR DS SIZE: " << lazerSlices.size() << std::endl;
+
+    return lazerSlices;
 }

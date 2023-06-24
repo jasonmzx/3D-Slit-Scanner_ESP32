@@ -62,13 +62,13 @@ int main()
 {
 	std::cout << "Indices (First 20): " << std::endl;
 
+	std::vector<LazerSlice> gliz = dataset_process("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_elephant");
+
 	for (int i = 0; i < 20; i++) {
 		std::cout << indices[i] << ", ";
 	}
 	std::cout << std::endl;
 
-	//process_img1();
-	// 
 	// Initialize GLFW
 
 	glfwInit();
