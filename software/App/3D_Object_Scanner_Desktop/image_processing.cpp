@@ -8,6 +8,7 @@
 #include <windows.h>
 
 #include <iostream>
+#include <array>
 #include <cmath>
 
 #include "image_processing.h" 
@@ -271,7 +272,7 @@ VerticeObject gen() {
 
     cv::Mat processed_matrix = img_process();
 
-    VerticeObject obj = detect_lazer_projection(processed_matrix); // Generates Vertices only essentially
+    VerticeObject obj = gen2();
 
     //Add Indices:
     std::cout << "Vertex Len: " << obj.vertices_length << std::endl;
@@ -425,17 +426,18 @@ int getMiddleElement(std::vector<int>& int_list) {
     return int_list[middleIndex];
 }
 
-std::vector<cv::Point> extract_lazer_from_cv_mat(cv::Mat image) {
-    std::vector<cv::Point> points_of_interest;
-
+void extract_lazer_from_cv_mat(cv::Mat image, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, LazerSlice& slice)
+{
     // Image Height & Width:
     int n_rows = image.rows;
     int n_cols = image.cols;
 
     for (int row = 0; row < n_rows; row++) {
+        
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
 
         for (int col = 0; col < n_cols; col++) { // You had 'row++' here
+
             if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
                 cv::Vec3b pixel = image.at<cv::Vec3b>(row, col);
                 int r = pixel[2];
@@ -452,32 +454,83 @@ std::vector<cv::Point> extract_lazer_from_cv_mat(cv::Mat image) {
         }
 
         if (!activated_cols.empty()) {
+
             int middle = getMiddleElement(activated_cols);
-            cv::Point xyPoint(middle, row);
-            points_of_interest.push_back(xyPoint);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints;
+
+            // Apply the camera calibration and distortion correction
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+            GLfloat offset = 0.75;
+
+            GLfloat normalX = normalizeCoordinate(static_cast<float>(dstPoints[0].x), n_rows);
+            GLfloat normalY = normalizeCoordinate(static_cast<float>(dstPoints[0].y), n_cols) + offset;
+
+            double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+
+            GLfloat normalZ = normalizeCoordinate(static_cast<float>(result), n_cols);
+
+
+            GLfloat theta = slice.angle * -7 * pi / 180; // Convert angle to radians
+
+            normalX = normalX * cos(theta); // Apply rotation matrix
+            normalZ = normalZ * sin(theta); // Apply rotation matrix
+
+            //Append to LaserSlice's 3D coord vector
+            std::array<GLfloat, 3> a3 = { normalX, normalY, normalZ };
+            slice.list_3d_coords.push_back(a3);
         }
     }
+} //Endof extract lazer
 
-    for (cv::Point point : points_of_interest) {
-        cv::circle(image, point, 1, cv::Scalar(0, 255, 0), -1);
-    }
+std::vector<LazerSlice> preproc_image_dataset(std::string dataset_folder_path) {
 
-    cv::namedWindow("Test", cv::WINDOW_NORMAL);
-    cv::resizeWindow("Test", 1000, 1000);
-    cv::imshow("Test", image);
-    cv::waitKey(0);
-
-    return points_of_interest;
-}
-
-
-std::vector<LazerSlice> preproc_image_dataset() {
-
-    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_lego");
+    std::vector<LazerSlice> dataset = load_image_dataset(dataset_folder_path);
 
     int size = 3;
     double sigX = 3; double sigY = 3;
 
+
+    //get some sizes whilst asserting:
+
+    int col_size, row_size;
+
+
+    if (!dataset.empty()) {
+        col_size = dataset.at(0).on_img.cols;
+        row_size = dataset.at(0).on_img.rows;
+    }
+    else {
+        std::cout << "Dataset is empty!" << std::endl;
+         //TODO: ESCAPE HERE (Return or something)
+    }
+
+    // #################### IMAGE INTERPOLATION MATRICES ####################
+
+// Define the camera matrix
+    double fx = 550.0;
+    double fy = 550.0;
+    double cx = 440.0;
+    double cy = 240.0;
+    cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
+
+// Define the distortion coefficients
+    double k1 = 0.1;
+    double k2 = 0.01;
+    double p1 = 0.0;
+    double p2 = 0.0;
+    double k3 = 0.01;
+    cv::Mat distCoeffs = (cv::Mat_<double>(5, 1) << k1, k2, p1, p2, k3);
+
+    cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(col_size, row_size), 1);
+
+    // #################### ENDOF IMAGE INTERPOLATION MATRICES ####################
+
+    //TODO: std::size_t is the unsigned integer type of the result of the sizeof operator as well as the sizeof.
     for (std::size_t i = 0; i < dataset.size(); ++i) {
 
         cv::Mat proc_diff;
@@ -498,7 +551,9 @@ std::vector<LazerSlice> preproc_image_dataset() {
 
         //! Step 3. Lazer Extraction step:
 
-        std::vector<cv::Point> points_of_interest = extract_lazer_from_cv_mat(proc_diff);
+        extract_lazer_from_cv_mat(proc_diff, cameraMatrix, distCoeffs, newCameraMatrix, slice);
+
+        std::cout << "SL3C: " << slice.list_3d_coords.size() << std::endl;
 
         //cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
         //cv::resizeWindow("imgProc", 1000, 1000);
@@ -506,7 +561,61 @@ std::vector<LazerSlice> preproc_image_dataset() {
         //cv::waitKey(0);
     }
 
-    
+    //  3D Pointcloud for each slice should be loaded in:
     return dataset;
+
+}
+
+VerticeObject gen2() {
+
+    VerticeObject obj;
+    obj.indices = 0;
+
+    //These objects already have the 3D points loaded in
+    std::vector<LazerSlice> processed_list = preproc_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_lego");
+
+    std::vector<GLfloat> vertex_list = {}; //Vertex list [ X, Y, Z, r, g, b, ... ]
+
+    GLfloat cubeSize = 0.01; // TODO: Improve this hardcode Size of the cube
+
+    for (std::size_t i = 0; i < processed_list.size(); ++i) { //Iterate thru all slices
+
+        std::vector<std::array<GLfloat, 3>> slice_3d_list = processed_list[i].list_3d_coords; 
+
+        for (std::size_t j = 0; j < slice_3d_list.size(); ++j) { //Iterate thru all 3D points in l3c list
+            
+            GLfloat normalX = slice_3d_list[j][0];
+            GLfloat normalY = slice_3d_list[j][1];
+            GLfloat normalZ = slice_3d_list[j][2];
+
+            vertex_list.reserve(6);
+
+            vertex_list.insert(vertex_list.end(), {
+               normalX - cubeSize, normalY - cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 1 (bottom-left-back)
+               normalX + cubeSize, normalY - cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 2 (bottom-right-back)
+               normalX + cubeSize, normalY + cubeSize, normalZ - cubeSize, 1.0f, 1.0f, 0.0f, // Vertex 3 (top-right-back)
+               normalX - cubeSize, normalY + cubeSize, normalZ - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 4 (top-left-back)
+               normalX - cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 5 (bottom-left-front)
+               normalX + cubeSize, normalY - cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 6 (bottom-right-front)
+               normalX + cubeSize, normalY + cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 7 (top-right-front)
+               normalX - cubeSize, normalY + cubeSize, normalZ + cubeSize, 0.0f, 1.0f, 0.0f  // Vertex 8 (top-left-front)
+            });
+
+        }
+
+    }
+
+    GLfloat* vertex_list_as_float_array = new GLfloat[vertex_list.size()]; // allocate memory for the array
+
+    std::copy(vertex_list.begin(), vertex_list.end(), vertex_list_as_float_array); // copy the vector elements to the array
+
+    // Populate object before return: (Set Vertices GLfloat* arr, and it's size (n. elements) )
+
+    obj.vertices = vertex_list_as_float_array;
+    obj.vertices_length = vertex_list.size() * sizeof(GLfloat);
+
+    std::cout << "Vertex List Size : " << vertex_list.size() << std::endl;
+
+    return obj;
 
 }
