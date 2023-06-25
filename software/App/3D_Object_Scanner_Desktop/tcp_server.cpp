@@ -195,8 +195,6 @@ void tcp_server_main()
 
             if (iResult > 0)
             {
-                send(clientS, recvbuf, iResult, 0);
-
 
                 //In this else statement I'm loading in the actual IMG in chunks, this else statement is called (4-6) times per iMG load
                 for (int z = 0; z < iResult; z++) {
