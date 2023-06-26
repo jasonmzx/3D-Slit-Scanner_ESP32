@@ -51,7 +51,7 @@ std::thread TCP_server_thread = std::thread(tcp_server_main);
 //	 0.0f, 0.8f,  0.0f,     1.0f, 0.41f, 0.71f,	2.5f, 5.0f,
 //};
 
-std::vector<LazerSlice> gliz = preproc_image_dataset();
+VerticeObject load2 = gen2();
 
 VerticeObject load = gen(); //Generates Vertices & Indices
 

@@ -2,7 +2,9 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+
 #include<glad/glad.h>
+#include<glm/glm.hpp>
 
 //Windows Import
 #include <windows.h>
@@ -14,6 +16,9 @@
 
 const double pi = 3.14159265358979323846;
 
+
+const bool PREPROC_DEBUG = true;
+const GLfloat cubeSize = 0.01; // Size of the cube
 
 GLfloat normalizeCoordinate(float value, float width) {
     GLfloat normalized;
@@ -164,10 +169,10 @@ VerticeObject detect_lazer_projection(cv::Mat image) {
 
     cv::Mat CV_result = image.clone();
 
-    for (cv::Point point : xyPixels) {
-        cv::circle(CV_result, point, 1, cv::Scalar(0, 255, 0), -1);
-    }
-
+        for (cv::Point point : xyPixels) {
+            cv::circle(CV_result, point, 1, cv::Scalar(0, 255, 0), -1);
+        }
+    
 
     cv::namedWindow("Test", cv::WINDOW_NORMAL);
     cv::resizeWindow("Test", 1000, 1000);
@@ -271,7 +276,8 @@ VerticeObject gen() {
 
     cv::Mat processed_matrix = img_process();
 
-    VerticeObject obj = detect_lazer_projection(processed_matrix); // Generates Vertices only essentially
+    //VerticeObject obj = detect_lazer_projection(processed_matrix); // Generates Vertices only essentially
+    VerticeObject obj = gen2();
 
     //Add Indices:
     std::cout << "Vertex Len: " << obj.vertices_length << std::endl;
@@ -425,19 +431,19 @@ int getMiddleElement(std::vector<int>& int_list) {
     return int_list[middleIndex];
 }
 
-std::vector<cv::Point> extract_lazer_from_cv_mat(cv::Mat image) {
+void extract_lazer_from_cv_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix) {
+    
     std::vector<cv::Point> points_of_interest;
-
     // Image Height & Width:
-    int n_rows = image.rows;
-    int n_cols = image.cols;
+    int n_rows = slice.processed_matrix.rows;
+    int n_cols = slice.processed_matrix.cols;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
 
         for (int col = 0; col < n_cols; col++) { // You had 'row++' here
             if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
-                cv::Vec3b pixel = image.at<cv::Vec3b>(row, col);
+                cv::Vec3b pixel = slice.processed_matrix.at<cv::Vec3b>(row, col);
                 int r = pixel[2];
                 int g = pixel[1];
                 int b = pixel[0];
@@ -448,28 +454,51 @@ std::vector<cv::Point> extract_lazer_from_cv_mat(cv::Mat image) {
                 if (brightness > 40) { // Brightness threshold of 150, adjust as needed
                     activated_cols.push_back(col);
                 }
+
             }
         }
 
         if (!activated_cols.empty()) {
             int middle = getMiddleElement(activated_cols);
+
+            //? For Debug:
             cv::Point xyPoint(middle, row);
             points_of_interest.push_back(xyPoint);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints;
+
+            // Apply the camera calibration and distortion correction
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+            GLfloat offset = 0.5;
+
+            GLfloat normalX = normalizeCoordinate(static_cast<float>(dstPoints[0].x), n_rows);
+            GLfloat normalY = normalizeCoordinate(static_cast<float>(dstPoints[0].y), n_cols) + offset;
+
+            double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+
+            GLfloat normalZ = normalizeCoordinate(static_cast<float>(result), n_cols);
+
+
+            GLfloat theta = slice.angle * pi / 180; // Convert angle to radians
+
+            normalX = normalX * cos(theta); // Apply rotation matrix
+            normalZ = normalZ * sin(theta); // Apply rotation matrix
+
+            slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
         }
     }
 
-    for (cv::Point point : points_of_interest) {
-        cv::circle(image, point, 1, cv::Scalar(0, 255, 0), -1);
+    //? DEBUG: 
+    if (PREPROC_DEBUG) {
+        for (cv::Point point : points_of_interest) {
+            cv::circle(slice.processed_matrix, point, 1, cv::Scalar(0, 255, 0), -1);
+        }
     }
-
-    cv::namedWindow("Test", cv::WINDOW_NORMAL);
-    cv::resizeWindow("Test", 1000, 1000);
-    cv::imshow("Test", image);
-    cv::waitKey(0);
-
-    return points_of_interest;
 }
-
 
 std::vector<LazerSlice> preproc_image_dataset() {
 
@@ -496,17 +525,90 @@ std::vector<LazerSlice> preproc_image_dataset() {
 
         cv::absdiff(processed_off, processed_on, proc_diff); 
 
-        //! Step 3. Lazer Extraction step:
+        //TODO: More Preprocessing ...
 
-        std::vector<cv::Point> points_of_interest = extract_lazer_from_cv_mat(proc_diff);
+        //! Append final Processed Image matrix:
+        
+        slice.processed_matrix = proc_diff;
 
-        //cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
-        //cv::resizeWindow("imgProc", 1000, 1000);
-        //cv::imshow("imgProc", proc_diff);
-        //cv::waitKey(0);
+        if (PREPROC_DEBUG) {
+            cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
+            cv::resizeWindow("imgProc", 1000, 1000);
+            cv::imshow("imgProc", proc_diff);
+            cv::waitKey(0);
+        }
     }
-
     
     return dataset;
+}
 
+VerticeObject gen2() {
+
+    //Preprocess Images
+
+    VerticeObject obj;
+
+    std::vector<LazerSlice> processed_images = preproc_image_dataset();
+
+    // Define the camera matrix
+
+    double fx = 550.0;
+    double fy = 550.0;
+    double cx = 440.0;
+    double cy = 240.0;
+    cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
+
+    // Define the distortion coefficients
+
+    double k1 = 0.1;
+    double k2 = 0.01;
+    double p1 = 0.0;
+    double p2 = 0.0;
+    double k3 = 0.01;
+    cv::Mat distCoeffs = (cv::Mat_<double>(5, 1) << k1, k2, p1, p2, k3);
+
+    //Get Cols & Rows
+
+    int n_cols = processed_images.at(0).on_img.cols;
+    int n_rows = processed_images.at(0).on_img.rows;
+    
+    cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(n_cols, n_rows), 1);
+
+    std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
+
+    for (LazerSlice slice : processed_images) {
+        extract_lazer_from_cv_mat(slice, cameraMatrix, distCoeffs, newCameraMatrix);
+        std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
+    
+        for (glm::vec3 point : slice.list_3d_points) {
+            
+            xyz_slice.reserve(6);
+
+            // Inserting the vertices of the cube
+            xyz_slice.insert(xyz_slice.end(), {
+                point[0] - cubeSize, point[1] - cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 1 (bottom-left-back)
+                point[0] + cubeSize, point[1] - cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 2 (bottom-right-back)
+                point[0] + cubeSize, point[1] + cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 3 (top-right-back)
+                point[0] - cubeSize, point[1] + cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 4 (top-left-back)
+                point[0] - cubeSize, point[1] - cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 5 (bottom-left-front)
+                point[0] + cubeSize, point[1] - cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 6 (bottom-right-front)
+                point[0] + cubeSize, point[1] + cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 7 (top-right-front)
+                point[0] - cubeSize, point[1] + cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 0.0f  // Vertex 8 (top-left-front)
+              });
+
+        }
+
+    
+    }
+
+    GLfloat* xyz_slice_converted = new GLfloat[xyz_slice.size()]; // allocate memory for the array
+
+    std::copy(xyz_slice.begin(), xyz_slice.end(), xyz_slice_converted); // copy the vector elements to the array
+
+    // Populate object before return: (Set Vertices GLfloat* arr, and it's size (n. elements) )
+
+    obj.vertices = xyz_slice_converted;
+    obj.vertices_length = xyz_slice.size() * sizeof(GLfloat);
+
+    return obj;
 }
