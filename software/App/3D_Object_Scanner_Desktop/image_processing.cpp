@@ -473,7 +473,7 @@ void extract_lazer_from_cv_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat 
             // Apply the camera calibration and distortion correction
             cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
 
-            GLfloat offset = 0.5;
+            GLfloat offset = 0.05;
 
             GLfloat normalX = normalizeCoordinate(static_cast<float>(dstPoints[0].x), n_rows);
             GLfloat normalY = normalizeCoordinate(static_cast<float>(dstPoints[0].y), n_cols) + offset;
@@ -483,7 +483,7 @@ void extract_lazer_from_cv_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat 
             GLfloat normalZ = normalizeCoordinate(static_cast<float>(result), n_cols);
 
 
-            GLfloat theta = slice.angle * pi / 180; // Convert angle to radians
+            GLfloat theta = (slice.angle +90) * pi / 180; // Convert angle to radians
 
             normalX = normalX * cos(theta); // Apply rotation matrix
             normalZ = normalZ * sin(theta); // Apply rotation matrix
@@ -502,7 +502,7 @@ void extract_lazer_from_cv_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat 
 
 std::vector<LazerSlice> preproc_image_dataset() {
 
-    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_lego");
+    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_butter_dish");
 
     int size = 3;
     double sigX = 3; double sigY = 3;
@@ -598,7 +598,6 @@ VerticeObject gen2() {
 
         }
 
-    
     }
 
     GLfloat* xyz_slice_converted = new GLfloat[xyz_slice.size()]; // allocate memory for the array

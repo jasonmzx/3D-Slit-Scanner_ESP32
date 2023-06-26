@@ -51,14 +51,10 @@ std::thread TCP_server_thread = std::thread(tcp_server_main);
 //	 0.0f, 0.8f,  0.0f,     1.0f, 0.41f, 0.71f,	2.5f, 5.0f,
 //};
 
-VerticeObject load2 = gen2();
-
 VerticeObject load = gen(); //Generates Vertices & Indices
 
 GLfloat* vertices = load.vertices;
 GLuint* indices = load.indices; // 0, 1, 2 , 0, 2, 3, 0, 3 ,4 ....
-
-//GLuint* indices = new GLuint[3];
 
 int main()
 {
