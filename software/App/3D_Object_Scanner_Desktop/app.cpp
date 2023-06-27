@@ -3,6 +3,7 @@
 
 //C++ Built-in Libraries:
 #include<iostream>
+#include <sstream>
 #include <thread>  // std::thread
 
 // OpenGL & Related Libraries
@@ -33,31 +34,46 @@ void tcp_server_main();
 #include "Camera.h"
 
 
+// CLI COMMANDS
+
+struct RunTcpCommand {
+	bool isPortSet;
+	int port;
+};
+
+struct RenderCommand {
+	std::string directory;
+
+	bool isMidpointSet;
+	int midpoint;
+
+	bool isCutoffSet;
+	int cutoff;
+
+	bool isPipelineSet;
+	std::string pipeline;
+};
+
+//CLI helpers
+
+bool is_integer(const std::string& s) {
+	return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
 const unsigned int width = 1000;
 const unsigned int height = 1000;
 
 
 //Thread Variables 
-std::thread TCP_server_thread = std::thread(tcp_server_main);
+//std::thread TCP_server_thread = std::thread(tcp_server_main);
 
 
-// Vertices coordinates
-//GLfloat vertices[] =
-//{ //     COORDINATES     /        COLORS      /   TexCoord  //
-//	-0.5f, 0.0f,  0.5f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f,
-//	-0.5f, 0.0f, -0.5f,     0.0f, 1.0f, 0.0f,	5.0f, 0.0f,
-//	 0.5f, 0.0f, -0.5f,     0.0f, 0.0f, 1.0f,	0.0f, 0.0f,
-//	 0.5f, 0.0f,  0.5f,     1.0f, 1.0f, 0.0f,	5.0f, 0.0f,
-//	 0.0f, 0.8f,  0.0f,     1.0f, 0.41f, 0.71f,	2.5f, 5.0f,
-//};
+int spawnOpenGL(VerticeObject payload) {
 
-VerticeObject load = gen(); //Generates Vertices & Indices
+	//Loading in the Processed Object into an OpenGL Window to be displayed
+	GLfloat* vertices = payload.vertices;
+	GLuint* indices = payload.indices;
 
-GLfloat* vertices = load.vertices;
-GLuint* indices = load.indices; // 0, 1, 2 , 0, 2, 3, 0, 3 ,4 ....
-
-int main()
-{
 	std::cout << "Indices (First 20): " << std::endl;
 
 
@@ -107,8 +123,8 @@ int main()
 	VAO VAO1;
 	VAO1.Bind();
 
-	int vertices_size = load.vertices_length;
-	GLsizeiptr indices_size = load.indices_length;
+	int vertices_size = payload.vertices_length;
+	GLsizeiptr indices_size = payload.indices_length;
 
 	std::cout << "Vertice Size: " << vertices_size << "\n Indices Size: " << indices_size << std::endl;
 
@@ -179,5 +195,100 @@ int main()
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program
 	glfwTerminate();
+	return 0;
+}
+
+//int main()
+//{
+//	VerticeObject load = gen(); //Generates Vertices & Indices
+//	int ogl_inst = spawnOpenGL(load);
+//	return 0;
+//}
+
+
+void programCredit() {
+	std::string text_decor = " #################### ";
+	std::string r_p = " -> ";
+
+	std::cout << text_decor << "Lazer Scanner / Profiler into 3D Project - DESKTOP APP - " << text_decor << std::endl;
+	std::cout << r_p << "Run TCP Server | rtcp [INT port]" << std::endl;
+	std::cout << r_p << "Render Dataset | render <STR path/to/dataset> [INT midpoint] [INT cutoff] [STR pipeline]\n" << std::endl;
+
+	std::cout << "Project by: jasonmzx , hope you enjoyed :-)\n\n\n" << std::endl;
+}
+
+int main() {
+
+	//Roll the credits at beginning
+	programCredit();
+
+	while (true) {
+		std::cout << "Enter command: ";
+		std::string command;
+		getline(std::cin, command);
+		std::istringstream iss(command);
+		std::vector<std::string> tokens{ std::istream_iterator<std::string>{iss},
+										 std::istream_iterator<std::string>{} };
+
+		if (!tokens.empty()) {
+			if (tokens[0] == "rt" || tokens[0] == "rtcp" || tokens[0] == "t") {
+				RunTcpCommand runTcpCommand;
+				runTcpCommand.isPortSet = false;
+
+				if (tokens.size() > 1 && is_integer(tokens[1])) {
+					runTcpCommand.port = std::stoi(tokens[1]);
+					runTcpCommand.isPortSet = true;
+				}
+				// Print command data or handle runTcpCommand
+				if (runTcpCommand.isPortSet) {
+					std::cout << "TCP command activated. Port: " << runTcpCommand.port << "\n";
+				}
+				else {
+					std::cout << "TCP command activated. No port specified.\n";
+					tcp_server_main();
+				}
+			}
+			else if (tokens[0] == "r" || tokens[0] == "render") {
+				if (tokens.size() < 2) {
+					std::cerr << "Error: Render command requires a directory path.\n";
+				}
+				else {
+					RenderCommand renderCommand;
+					renderCommand.directory = tokens[1];
+					renderCommand.isMidpointSet = false;
+					renderCommand.isCutoffSet = false;
+					renderCommand.isPipelineSet = false;
+
+					if (tokens.size() > 2 && is_integer(tokens[2])) {
+						renderCommand.midpoint = std::stoi(tokens[2]);
+						renderCommand.isMidpointSet = true;
+					}
+					if (tokens.size() > 3 && is_integer(tokens[3])) {
+						renderCommand.cutoff = std::stoi(tokens[3]);
+						renderCommand.isCutoffSet = true;
+					}
+					if (tokens.size() > 4) {
+						renderCommand.pipeline = tokens[4];
+						renderCommand.isPipelineSet = true;
+					}
+					// Print command data or handle renderCommand
+					std::cout << "Render command activated. Directory: " << renderCommand.directory;
+					if (renderCommand.isMidpointSet) {
+						std::cout << ", Midpoint: " << renderCommand.midpoint;
+					}
+					if (renderCommand.isCutoffSet) {
+						std::cout << ", Cutoff: " << renderCommand.cutoff;
+					}
+					if (renderCommand.isPipelineSet) {
+						std::cout << ", Pipeline: " << renderCommand.pipeline;
+					}
+					std::cout << "\n";
+				}
+			}
+			else {
+				std::cerr << "Error: Unknown command.\n";
+			}
+		}
+	}
 	return 0;
 }
