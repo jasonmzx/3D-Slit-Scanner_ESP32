@@ -483,10 +483,25 @@ void extract_lazer_from_cv_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat 
             GLfloat normalZ = normalizeCoordinate(static_cast<float>(result), n_cols);
 
 
-            GLfloat theta = (slice.angle +90) * pi / 180; // Convert angle to radians
+            GLfloat theta = (slice.angle) * pi / 180; // Convert angle to radians
 
-            normalX = normalX * cos(theta); // Apply rotation matrix
-            normalZ = normalZ * sin(theta); // Apply rotation matrix
+            //normalX = normalX * cos(theta); // Apply rotation matrix
+            //normalZ = normalZ * sin(theta); // Apply rotation matrix
+
+
+            cv::Matx33f rotationMatrix(
+                cos(theta), 0, sin(theta),
+                0, 1, 0,
+                -sin(theta), 0, cos(theta)
+            );
+
+            cv::Vec3f point(normalX, normalY, normalZ);
+            point = rotationMatrix * point;
+
+            normalX = point[0];
+            normalY = point[1];
+            normalZ = point[2];
+
 
             slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
         }
@@ -498,6 +513,85 @@ void extract_lazer_from_cv_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat 
             cv::circle(slice.processed_matrix, point, 1, cv::Scalar(0, 255, 0), -1);
         }
     }
+}
+
+void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix) {
+   
+    // Image Height & Width:
+    int n_rows = slice.processed_matrix.rows;
+    int n_cols = slice.processed_matrix.cols;
+
+    //TODO: 
+
+    const int IMAGE_MIDPOINT = 156;
+
+    for (int row = 0; row < n_rows; row++) {
+        std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
+
+        for (int col = 0; col < n_cols; col++) { // You had 'row++' here
+            if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
+                cv::Vec3b pixel = slice.processed_matrix.at<cv::Vec3b>(row, col);
+                int r = pixel[2];
+                int g = pixel[1];
+                int b = pixel[0];
+
+                float brightness = (1 * r + 0.7 * g + 0.7 * b);
+
+                // TODO: Generate 3D points for point cloud
+                if (brightness > 40) { // Brightness threshold of 150, adjust as needed
+                    activated_cols.push_back(col);
+                }
+
+            }
+        }
+
+        if (!activated_cols.empty()) {
+            int middle = getMiddleElement(activated_cols);
+
+            //? For Debug:
+            cv::Point xyPoint(middle, row);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints; //needs to be array for CV::OUTPUT_ARRAY
+
+            // Apply the camera calibration and distortion correction
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+
+            //
+            //int Z = dstPoints[0].y; //Z is up in Cylindrical
+            int Z = row;
+            float R = IMAGE_MIDPOINT - middle;
+
+            float rawAngle = (slice.angle) * pi / 180; // Convert angle to radians
+
+            GLfloat X = R * cos(rawAngle);
+            GLfloat Y = R * sin(rawAngle);
+
+
+
+            GLfloat offset = 0.05;
+
+            GLfloat normalX = normalizeCoordinate(static_cast<float>(X), n_rows);
+            GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), n_cols);
+
+            //double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+
+            GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_cols);
+
+
+            //normalX = normalX * cos(theta); // Apply rotation matrix
+            //normalZ = normalZ * sin(theta); // Apply rotation matrix
+
+
+
+            slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
+        }
+    }
+
+
 }
 
 std::vector<LazerSlice> preproc_image_dataset() {
@@ -577,7 +671,7 @@ VerticeObject gen2() {
     std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
     for (LazerSlice slice : processed_images) {
-        extract_lazer_from_cv_mat(slice, cameraMatrix, distCoeffs, newCameraMatrix);
+        extract_cylindrical_lzr(slice, cameraMatrix, distCoeffs, newCameraMatrix);
         std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
     
         for (glm::vec3 point : slice.list_3d_points) {
