@@ -562,13 +562,13 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
             //
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Z = row;
+            int Y = row;
             float R = IMAGE_MIDPOINT - middle;
 
-            float rawAngle = (slice.angle) * pi / 180; // Convert angle to radians
+            float rawAngle = (slice.angle + 45) * pi / 180; // Convert angle to radians
 
             GLfloat X = R * cos(rawAngle);
-            GLfloat Y = R * sin(rawAngle);
+            GLfloat Z = R * sin(rawAngle);
 
 
 
