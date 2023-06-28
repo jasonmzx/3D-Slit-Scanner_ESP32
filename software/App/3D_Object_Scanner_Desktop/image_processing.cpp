@@ -18,7 +18,7 @@ const double pi = 3.14159265358979323846;
 
 
 const bool PREPROC_DEBUG = true;
-const GLfloat cubeSize = 0.01; // Size of the cube
+const GLfloat cubeSize = 0.005; // Size of the cube
 
 GLfloat normalizeCoordinate(float value, float width) {
     GLfloat normalized;
@@ -372,15 +372,16 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
 
 
                 // Parse the filename
-                int captureInt;
+
+                int lazerInt; 
                 int num1, num2;
-                sscanf_s(findFileData.cFileName, "%d_%d-%d", &captureInt, &num1, &num2);
+                sscanf_s(findFileData.cFileName, "%d_%d-%d", &lazerInt, &num1, &num2);
                 
-                bool lazerOn = captureInt != 1;
+                //** Outputs:
+                bool lazerOn = lazerInt != 1;
                 float angle = num1 + num2 / pow(10, std::to_string(num2).length());
 
                 //get active on lzer
-
 
                 if (lazerOn) {
 
@@ -389,7 +390,6 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
                     // Construct full file path - ON
                     std::string full_path = dataset_folder_path + "/" + findFileData.cFileName;
                     
-
                     //Get corresponding off img to do binary diff - OFF
                     std::string off_img_path = findFileData.cFileName;
                     off_img_path[0] = '1';
@@ -523,7 +523,7 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
     //TODO: 
 
-    const int IMAGE_MIDPOINT = 156;
+    const int IMAGE_MIDPOINT = 250;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -538,7 +538,7 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
                 float brightness = (1 * r + 0.7 * g + 0.7 * b);
 
                 // TODO: Generate 3D points for point cloud
-                if (brightness > 40) { // Brightness threshold of 150, adjust as needed
+                if (brightness > 100) { // Brightness threshold of 150, adjust as needed
                     activated_cols.push_back(col);
                 }
 
@@ -596,7 +596,7 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
 std::vector<LazerSlice> preproc_image_dataset() {
 
-    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto-dataset/01_butter_dish");
+    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto2-dataset/p2_noisy_plug_box");
 
     int size = 3;
     double sigX = 3; double sigY = 3;
@@ -621,14 +621,36 @@ std::vector<LazerSlice> preproc_image_dataset() {
 
         //TODO: More Preprocessing ...
 
+        std::vector<cv::Point2f> perspective_crop;
+
+        //? Currently Hardcoded... FIX IT
+        perspective_crop.push_back(cv::Point2f(192, 40)); //Top Right
+        perspective_crop.push_back(cv::Point2f(200, 160)); //Bottom Right
+        perspective_crop.push_back(cv::Point2f(6, 213)); //Bottom Left
+        perspective_crop.push_back(cv::Point2f(8, 77)); //Top Left
+
+        std::vector<cv::Point2f> target_shape;
+        target_shape.push_back(cv::Point2f(proc_diff.cols, 0));           // Top Right
+        target_shape.push_back(cv::Point2f(proc_diff.cols, proc_diff.rows));// Bottom Right (POINT 1)
+        target_shape.push_back(cv::Point2f(0, proc_diff.rows));            // Bottom Left (POINT 2)
+        target_shape.push_back(cv::Point2f(0, 0));
+
+        // Get the perspective transformation matrix
+
+        cv::Mat transformation = cv::getPerspectiveTransform(perspective_crop, target_shape);
+
+        // Apply the perspective transformation
+        cv::Mat rotated_image;
+        cv::warpPerspective(proc_diff, rotated_image, transformation, proc_diff.size());
+
         //! Append final Processed Image matrix:
         
-        slice.processed_matrix = proc_diff;
+        slice.processed_matrix = rotated_image;
 
         if (PREPROC_DEBUG) {
             cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
             cv::resizeWindow("imgProc", 1000, 1000);
-            cv::imshow("imgProc", proc_diff);
+            cv::imshow("imgProc", rotated_image);
             cv::waitKey(0);
         }
     }
@@ -673,21 +695,23 @@ VerticeObject gen2() {
     for (LazerSlice slice : processed_images) {
         extract_cylindrical_lzr(slice, cameraMatrix, distCoeffs, newCameraMatrix);
         std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
-    
+           
+        float debug_n = slice.angle = slice.angle / 360.0;
+
         for (glm::vec3 point : slice.list_3d_points) {
             
             xyz_slice.reserve(6);
 
             // Inserting the vertices of the cube
             xyz_slice.insert(xyz_slice.end(), {
-                point[0] - cubeSize, point[1] - cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 1 (bottom-left-back)
-                point[0] + cubeSize, point[1] - cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 2 (bottom-right-back)
-                point[0] + cubeSize, point[1] + cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 3 (top-right-back)
-                point[0] - cubeSize, point[1] + cubeSize, point[2] - cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 4 (top-left-back)
-                point[0] - cubeSize, point[1] - cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 5 (bottom-left-front)
-                point[0] + cubeSize, point[1] - cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 1.0f, // Vertex 6 (bottom-right-front)
-                point[0] + cubeSize, point[1] + cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 0.0f, // Vertex 7 (top-right-front)
-                point[0] - cubeSize, point[1] + cubeSize, point[2] + cubeSize, 0.0f, 1.0f, 0.0f  // Vertex 8 (top-left-front)
+                point[0] - cubeSize, point[1] - cubeSize, point[2] - cubeSize, debug_n, 1.0f, debug_n, // Vertex 1 (bottom-left-back)
+                point[0] + cubeSize, point[1] - cubeSize, point[2] - cubeSize, debug_n, 1.0f,  debug_n, // Vertex 2 (bottom-right-back)
+                point[0] + cubeSize, point[1] + cubeSize, point[2] - cubeSize, debug_n, 1.0f,  debug_n, // Vertex 3 (top-right-back)
+                point[0] - cubeSize, point[1] + cubeSize, point[2] - cubeSize, debug_n, 1.0f,  debug_n, // Vertex 4 (top-left-back)
+                point[0] - cubeSize, point[1] - cubeSize, point[2] + cubeSize, debug_n, 1.0f,  debug_n, // Vertex 5 (bottom-left-front)
+                point[0] + cubeSize, point[1] - cubeSize, point[2] + cubeSize, debug_n, 1.0f,  debug_n, // Vertex 6 (bottom-right-front)
+                point[0] + cubeSize, point[1] + cubeSize, point[2] + cubeSize, debug_n, 1.0f,  debug_n, // Vertex 7 (top-right-front)
+                point[0] - cubeSize, point[1] + cubeSize, point[2] + cubeSize, debug_n, 1.0f,  debug_n  // Vertex 8 (top-left-front)
               });
 
         }

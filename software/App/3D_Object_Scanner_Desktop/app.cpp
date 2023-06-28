@@ -251,6 +251,13 @@ int main() {
 			else if (tokens[0] == "r" || tokens[0] == "render") {
 				if (tokens.size() < 2) {
 					std::cerr << "Error: Render command requires a directory path.\n";
+
+					//TODO: REMOVE
+						VerticeObject load = gen(); //Generates Vertices & Indices
+	int ogl_inst = spawnOpenGL(load);
+	return 0;
+
+
 				}
 				else {
 					RenderCommand renderCommand;
