@@ -209,7 +209,7 @@ void tcp_server_main()
 
                 //Assert for the case where Angle Information is being sent in after the last IMG:
 
-                if (imgCharBuffer.size() < 3) {
+                if (imgCharBuffer.size() < 4) {
                     
                     std::cout << "########## IMAGE ACKNOWLEDGEMENT ##########" << std::endl;
 
@@ -228,7 +228,6 @@ void tcp_server_main()
                     tempMatrixBuffer = {};
                         
                     break;
-
                 }
 
                 std::cout << "Iterating thru vec<char>" << imgCharBuffer.size() << std::endl;
@@ -251,10 +250,11 @@ void tcp_server_main()
                 bufferCount = 0;
                 showMat(casted);
 
-                //Read for the Angle
+                //Before close, send back an OK ACK
+                std::string ackMessage = "OK\n";
+                send(clientS, ackMessage.c_str(), ackMessage.size(), 0);
 
                 closesocket(clientS);
-                
                 break;
 
             }
