@@ -1,8 +1,3 @@
-
-//Stepper Driver Pins (for Step-Motor IO)
-//! const int stepPin = 12; 
-//! const int dirPin = 14; 
-
 //Library Dependencies:
 
   //For Joystick:
