@@ -234,9 +234,9 @@ void tcp_server_main()
 
 
 
-                for (auto c : imgCharBuffer) {
-                    std::cout << c;
-                }
+                //for (auto c : imgCharBuffer) {
+                //    std::cout << c;
+                //}
 
                 auto casted = cv::imdecode(imgCharBuffer, cv::IMREAD_COLOR); //Potential Errors with this 
 
@@ -248,7 +248,7 @@ void tcp_server_main()
                 std::cout << "CASTED TO MATRIX !" << std::endl;
                
                 bufferCount = 0;
-                showMat(casted);
+                //showMat(casted);
 
                 closesocket(clientS);
                 break;
