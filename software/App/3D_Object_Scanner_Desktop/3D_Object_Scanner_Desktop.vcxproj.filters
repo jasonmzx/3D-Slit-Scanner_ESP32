@@ -45,6 +45,9 @@
     <ClCompile Include="tcp_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="image_processing.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

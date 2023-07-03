@@ -523,7 +523,7 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
     //TODO: 
 
-    const int IMAGE_MIDPOINT = 250;
+    const int IMAGE_MIDPOINT = 161;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -535,10 +535,10 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
                 int g = pixel[1];
                 int b = pixel[0];
 
-                float brightness = (1 * r + 0.7 * g + 0.7 * b);
+                float brightness = (1 * r + 0.5 * g + 0.7 * b);
 
                 // TODO: Generate 3D points for point cloud
-                if (brightness > 100) { // Brightness threshold of 150, adjust as needed
+                if (brightness > 35) { // Brightness threshold of 150, adjust as needed
                     activated_cols.push_back(col);
                 }
 
@@ -567,12 +567,10 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
             float rawAngle = (slice.angle + 45) * pi / 180; // Convert angle to radians
 
-            GLfloat X = R * cos(rawAngle);
-            GLfloat Z = R * sin(rawAngle);
+            GLfloat X = (R-5) * cos(rawAngle);
+            GLfloat Z = (R+5) * sin(rawAngle);
 
 
-
-            GLfloat offset = 0.05;
 
             GLfloat normalX = normalizeCoordinate(static_cast<float>(X), n_rows);
             GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), n_cols);
@@ -581,11 +579,8 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
             GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_cols);
 
-
             //normalX = normalX * cos(theta); // Apply rotation matrix
             //normalZ = normalZ * sin(theta); // Apply rotation matrix
-
-
 
             slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
         }
@@ -596,7 +591,7 @@ void extract_cylindrical_lzr(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
 std::vector<LazerSlice> preproc_image_dataset() {
 
-    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto2-dataset/p2_noisy_plug_box");
+    std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto2-dataset/monk_1");
 
     int size = 3;
     double sigX = 3; double sigY = 3;
@@ -645,12 +640,12 @@ std::vector<LazerSlice> preproc_image_dataset() {
 
         //! Append final Processed Image matrix:
         
-        slice.processed_matrix = rotated_image;
+        slice.processed_matrix = proc_diff;
 
         if (PREPROC_DEBUG) {
             cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
             cv::resizeWindow("imgProc", 1000, 1000);
-            cv::imshow("imgProc", rotated_image);
+            cv::imshow("imgProc", proc_diff);
             cv::waitKey(0);
         }
     }

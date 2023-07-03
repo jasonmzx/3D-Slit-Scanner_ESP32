@@ -10,11 +10,10 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
+	// GLM Imports for Matrix Calculations with OpenGL
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
-
-//TODO: Import & Get GLM working in the project
 
 // OpenCV & Image Processing Libraries
 #include <opencv2/imgcodecs.hpp>
@@ -23,10 +22,11 @@
 
 void tcp_server_main();
 
-//Project imports
+// Project Core Imports:
 #include "image_processing.h"
+#include "pipeline.h"
 
-//	process_img1();
+//	OpenGL Classes Imports:
 #include "shaderClass.h"
 #include "VAO.h"
 #include "VBO.h"
@@ -62,7 +62,6 @@ bool is_integer(const std::string& s) {
 
 const unsigned int width = 1000;
 const unsigned int height = 1000;
-
 
 //Thread Variables 
 //std::thread TCP_server_thread = std::thread(tcp_server_main);
@@ -107,8 +106,6 @@ int spawnOpenGL(VerticeObject payload) {
 	glfwMakeContextCurrent(window);
 
 	//Load GLAD so it configures OpenGL
-
-
 	gladLoadGL();
 
 
@@ -253,9 +250,15 @@ int main() {
 					std::cerr << "Error: Render command requires a directory path.\n";
 
 					//TODO: REMOVE
-						VerticeObject load = gen(); //Generates Vertices & Indices
-	int ogl_inst = spawnOpenGL(load);
-	return 0;
+
+					//TODO: REMOVE
+
+				VerticeObject load = gen(); //Generates Vertices & Indices
+				int ogl_inst = spawnOpenGL(load);
+				return 0;
+
+
+				//TODO: REMOVE
 
 
 				}
@@ -280,6 +283,10 @@ int main() {
 					}
 					// Print command data or handle renderCommand
 					std::cout << "Render command activated. Directory: " << renderCommand.directory;
+
+
+					// At this point, it's OK
+
 					if (renderCommand.isMidpointSet) {
 						std::cout << ", Midpoint: " << renderCommand.midpoint;
 					}
@@ -288,6 +295,7 @@ int main() {
 					}
 					if (renderCommand.isPipelineSet) {
 						std::cout << ", Pipeline: " << renderCommand.pipeline;
+						executePipeline(renderCommand.pipeline);
 					}
 					std::cout << "\n";
 				}
