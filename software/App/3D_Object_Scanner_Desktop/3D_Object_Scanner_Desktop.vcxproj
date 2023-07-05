@@ -72,16 +72,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Jason-Pavillon\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Jason-Pavillon\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jason\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jason\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Jason-Pavillon\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Jason-Pavillon\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jason\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jason\Documents\GitHub\3D-IoT-Object-Scanner\software\App\3D_Object_Scanner_Desktop\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -149,8 +149,12 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="image_processing.cpp" />
+    <ClCompile Include="image_preproc.cpp" />
+    <ClCompile Include="io_handle.cpp" />
+    <ClCompile Include="pipeline.cpp" />
+    <ClCompile Include="reconstruction.cpp" />
     <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="struct.cpp" />
     <ClCompile Include="tcp_server.cpp" />
     <ClCompile Include="VAO.cpp" />
     <ClCompile Include="VBO.cpp" />
@@ -158,8 +162,12 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EBO.h" />
-    <ClInclude Include="image_processing.h" />
+    <ClInclude Include="image_preproc.h" />
+    <ClInclude Include="io_handle.h" />
+    <ClInclude Include="pipeline.h" />
+    <ClInclude Include="reconstruction.h" />
     <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="struct.h" />
     <ClInclude Include="VAO.h" />
     <ClInclude Include="VBO.h" />
   </ItemGroup>

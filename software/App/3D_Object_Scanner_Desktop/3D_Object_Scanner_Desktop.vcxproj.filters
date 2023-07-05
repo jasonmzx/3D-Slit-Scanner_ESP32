@@ -16,15 +16,15 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{94dc4928-335b-4d46-aa18-a792b1027854}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\app_algorithm">
+      <UniqueIdentifier>{1904c6b8-9e0a-4ca4-a044-941eb2af6227}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="app.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="image_processing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="shaderClass.cpp">
@@ -48,11 +48,20 @@
     <ClCompile Include="pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="struct.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reconstruction.cpp">
+      <Filter>Source Files\app_algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="image_preproc.cpp">
+      <Filter>Source Files\app_algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="io_handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="image_processing.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="shaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,6 +78,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="struct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reconstruction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="image_preproc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io_handle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -23,7 +23,6 @@
 void tcp_server_main();
 
 // Project Core Imports:
-#include "image_processing.h"
 #include "pipeline.h"
 
 //	OpenGL Classes Imports:
@@ -74,7 +73,6 @@ int spawnOpenGL(VerticeObject payload) {
 	GLuint* indices = payload.indices;
 
 	std::cout << "Indices (First 20): " << std::endl;
-
 
 	for (int i = 0; i < 20; i++) {
 		std::cout << indices[i] << ", ";
@@ -249,18 +247,6 @@ int main() {
 				if (tokens.size() < 2) {
 					std::cerr << "Error: Render command requires a directory path.\n";
 
-					//TODO: REMOVE
-
-					//TODO: REMOVE
-
-				VerticeObject load = gen(); //Generates Vertices & Indices
-				int ogl_inst = spawnOpenGL(load);
-				return 0;
-
-
-				//TODO: REMOVE
-
-
 				}
 				else {
 					RenderCommand renderCommand;
@@ -295,7 +281,9 @@ int main() {
 					}
 					if (renderCommand.isPipelineSet) {
 						std::cout << ", Pipeline: " << renderCommand.pipeline;
-						executePipeline(renderCommand.pipeline);
+						VerticeObject pipeline_response = executePipeline(renderCommand.pipeline, "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto2-dataset/p2_monk");
+						int ogl_inst = spawnOpenGL(pipeline_response);
+						return 0;
 					}
 					std::cout << "\n";
 				}
