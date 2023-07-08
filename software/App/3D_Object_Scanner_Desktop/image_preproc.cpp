@@ -15,6 +15,7 @@ std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset
 
         cv::Mat processed_off, processed_on;
 
+
         cv::GaussianBlur(slice.off_img, processed_off, cv::Size(size, size), sigX, sigY); //no_cast
         cv::GaussianBlur(slice.on_img, processed_on, cv::Size(size, size), sigX, sigY); //casted
 
