@@ -19,8 +19,7 @@ VerticeObject pipeline1(std::string dataset) {
 
     VerticeObject obj;
 
-    //load data
-    //std::vector<LazerSlice> dataset = load_image_dataset("C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto2-dataset/p2_monk");
+    // Load data from Dataset Location
     std::vector<LazerSlice> loaded_dataset = load_image_dataset(dataset);
 
     //! PRE PROCESSING STEP :
@@ -32,7 +31,7 @@ VerticeObject pipeline1(std::string dataset) {
     double fx = 550.0;
     double fy = 550.0;
     double cx = 440.0;
-    double cy = 240.0;
+    double cy = 320.0;
     cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
 
     //! Define the distortion coefficients
@@ -148,15 +147,15 @@ VerticeObject pipeline2(std::string dataset) {
     return obj;  // assuming you've modified obj as necessary
 }
 
-// Add your pipeline functions to a map.
+// TODO: ADD MORE PIPELINES BELOW
+
 std::map<std::string, PipelineFunction> pipelineMap = {
     {"pipeline1", pipeline1},
     {"pipeline2", pipeline2},
-    // Add more pipelines here.
 };
 
 // Function to execute a pipeline by name.
-VerticeObject executePipeline(const std::string& pipelineName, const std::string& dataset) {
+VerticeObject executePipeline(const std::string& pipelineName, const std::string& dataset, int& midpoint, int& cutoff) {
     // Find the pipeline function in the map.
     auto it = pipelineMap.find(pipelineName);
     if (it == pipelineMap.end()) {

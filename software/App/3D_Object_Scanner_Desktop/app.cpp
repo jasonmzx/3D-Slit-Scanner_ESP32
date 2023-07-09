@@ -281,7 +281,14 @@ int main() {
 					}
 					if (renderCommand.isPipelineSet) {
 						std::cout << ", Pipeline: " << renderCommand.pipeline;
-						VerticeObject pipeline_response = executePipeline(renderCommand.pipeline, "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/proto2-dataset/p2_monk");
+						
+						VerticeObject pipeline_response = executePipeline(
+							renderCommand.pipeline, 
+							renderCommand.directory,
+							renderCommand.midpoint,
+							renderCommand.cutoff
+						);
+
 						int ogl_inst = spawnOpenGL(pipeline_response);
 						return 0;
 					}

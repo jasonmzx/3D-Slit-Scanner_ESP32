@@ -88,8 +88,6 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
             GLfloat X = (R - 5) * cos(rawAngle);
             GLfloat Z = (R + 5) * sin(rawAngle);
 
-
-
             GLfloat normalX = normalizeCoordinate(static_cast<float>(X), n_rows);
             GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), n_cols);
 
