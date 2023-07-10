@@ -4,6 +4,8 @@
 #include <windows.h> //For WIN32_FIND_DATAA, HANDLE, and all the FileSystem I.O Wrappers for Windows OS
 
 
+std::string loghead = "[ IO_HANDLE.CPP ] >> ";
+
 bool folder_exists(const std::string& folderPath)
 {
     DWORD fileAttributes = GetFileAttributesA(folderPath.c_str()); //Get the folder
@@ -32,10 +34,8 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
                     continue;
 
 
-                std::cout << findFileData.cFileName << std::endl;
-
-
-
+                std::cout << loghead << findFileData.cFileName << std::endl;
+                
                 // Parse the filename
 
                 int lazerInt;
@@ -82,7 +82,36 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
         }
     }
 
-    std::cout << "VECTOR DS SIZE: " << lazerSlices.size() << std::endl;
+    std::cout << loghead << "VECTOR DS SIZE: " << lazerSlices.size() << std::endl;
 
     return lazerSlices;
 }
+
+//std::string basePath = "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/camera-calibration-data/example_cam";
+
+std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path) {
+    std::vector<cv::Mat> images;
+
+    if (!folder_exists(dataset_base_path)) {
+        std::cout << loghead << "Folder does not exist: " << dataset_base_path << std::endl;
+        return images;  // Return empty vector
+    }
+
+    std::vector<std::string> filenames;
+    cv::glob(dataset_base_path + "/*.*", filenames, false); 
+    //Grabs all filenames and from dataset Base Path and add it to filenames vec of strings
+    // ! Glob matches to that /*.png pattern
+
+    for (size_t i = 0; i < filenames.size(); ++i) {
+        cv::Mat img = cv::imread(filenames[i], cv::IMREAD_COLOR);
+
+        if (!img.empty()) {
+            images.push_back(img);
+        }
+    }
+    std::cout << loghead << "Loaded in Vector of " << images.size() << " image matrices." << std::endl;
+    return images;
+}
+
+
+
