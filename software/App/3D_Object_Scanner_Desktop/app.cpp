@@ -24,6 +24,7 @@ void tcp_server_main();
 
 // Project Core Imports:
 #include "pipeline.h"
+#include "camera_calibration.h"
 
 //	OpenGL Classes Imports:
 #include "shaderClass.h"
@@ -53,6 +54,9 @@ struct RenderCommand {
 	std::string pipeline;
 };
 
+struct CameraCalibrationCommand {
+	std::string directory;
+};
 //CLI helpers
 
 bool is_integer(const std::string& s) {
@@ -193,14 +197,6 @@ int spawnOpenGL(VerticeObject payload) {
 	return 0;
 }
 
-//int main()
-//{
-//	VerticeObject load = gen(); //Generates Vertices & Indices
-//	int ogl_inst = spawnOpenGL(load);
-//	return 0;
-//}
-
-
 void programCredit() {
 	std::string text_decor = " #################### ";
 	std::string r_p = " -> ";
@@ -226,6 +222,9 @@ int main() {
 										 std::istream_iterator<std::string>{} };
 
 		if (!tokens.empty()) {
+
+		// ! COMMAND EXECUTIONS HERE : 		
+	
 			if (tokens[0] == "rt" || tokens[0] == "rtcp" || tokens[0] == "t") {
 				RunTcpCommand runTcpCommand;
 				runTcpCommand.isPortSet = false;
@@ -295,6 +294,24 @@ int main() {
 					std::cout << "\n";
 				}
 			}
+			else if (tokens[0] == "cc" || tokens[0] == "camera") {
+				
+				//Assert for Correct Command Size:
+				if (tokens.size() < 1) {
+					std::cerr << "Error: Camera Calibration Command requires a directory path.\n";
+
+				}
+				else {
+
+					CameraCalibrationCommand CCComand;
+					CCComand.directory = tokens[1];
+
+					calibrate_camera_from_directory(CCComand.directory, 11, 7, true);
+				}
+				
+
+			}
+
 			else {
 				std::cerr << "Error: Unknown command.\n";
 			}
