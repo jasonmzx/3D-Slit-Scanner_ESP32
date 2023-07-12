@@ -147,11 +147,17 @@ VerticeObject pipeline2(std::string dataset) {
     return obj;  // assuming you've modified obj as necessary
 }
 
+VerticeObject pipelineCombo(std::string set_of_datasets) {
+    std::cout << "\n Running pipeline 3...\n";
+}
+
+
 // TODO: ADD MORE PIPELINES BELOW
 
 std::map<std::string, PipelineFunction> pipelineMap = {
     {"pipeline1", pipeline1},
     {"pipeline2", pipeline2},
+    {"pc", pipelineCombo}
 };
 
 // Function to execute a pipeline by name.
