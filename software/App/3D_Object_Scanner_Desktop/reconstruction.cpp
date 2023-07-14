@@ -35,7 +35,7 @@ GLfloat normalizeCoordinate(float value, float width) {
 
 //! ############ Main 2D -> 3D RECONSTRUCTION Functions ############
 
-void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix) {
+void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
 
     // Image Height & Width:
     int n_rows = slice.processed_matrix.rows;
@@ -83,7 +83,7 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
             int Y = row;
             float R = IMAGE_MIDPOINT - middle;
 
-            float rawAngle = (slice.angle + 45) * pi / 180; // Convert angle to radians
+            float rawAngle = ( (slice.angle + 45) * pi / 180 )+angleOffset; // Convert angle to radians
 
             GLfloat X = (R - 5) * cos(rawAngle);
             GLfloat Z = (R + 5) * sin(rawAngle);

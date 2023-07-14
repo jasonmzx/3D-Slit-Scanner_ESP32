@@ -87,7 +87,42 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
     return lazerSlices;
 }
 
+
+std::vector<std::vector<LazerSlice>> load_set_of_image_datasets(std::string set_folder_path) {
+    std::vector<std::vector<LazerSlice>> loaded_datasets;
+
+    //! CHECKING FOR ALL file types within `set_folder_path`, but will sort for Directories
+    
+    std::string search_path = set_folder_path + "/*.*";
+    WIN32_FIND_DATAA fd;
+    HANDLE hFind = ::FindFirstFileA(search_path.c_str(), &fd); //Goto first file
+
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            // skip current directory and directory above
+            if (strcmp(fd.cFileName, ".") != 0 && strcmp(fd.cFileName, "..") != 0)
+            {
+                // Check if the found entity is a directory
+                if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                {
+                    std::string subdir_path = set_folder_path + "/" + fd.cFileName;
+                    if (folder_exists(subdir_path)) {
+                        loaded_datasets.push_back(load_image_dataset(subdir_path));
+                    }
+                }
+            }
+        } while (::FindNextFileA(hFind, &fd));
+        ::FindClose(hFind);
+    }
+
+    return loaded_datasets;
+}
+
+
+
 //std::string basePath = "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/camera-calibration-data/example_cam";
+
+//Loads in a Dataset into a Vector of CV::Matrix , useful for simple img viewing and camera calib methods
 
 std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path) {
     std::vector<cv::Mat> images;
