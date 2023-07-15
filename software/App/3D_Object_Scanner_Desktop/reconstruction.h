@@ -6,5 +6,7 @@
 
 //fns
 void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset);
+void extract_cylindrical_pts_2(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset);
+std::vector<glm::vec3> test_reconstruction();
 
 #endif // RECONSTRUCTION_H

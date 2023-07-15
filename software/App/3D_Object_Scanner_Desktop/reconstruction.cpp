@@ -42,7 +42,7 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
     int n_cols = slice.processed_matrix.cols;
 
     //TODO: Remove the Hard Code on IMG_MIDPOINT
-    const int IMAGE_MIDPOINT = 161;
+    int IMAGE_MIDPOINT = 161;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -83,10 +83,14 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
             int Y = row;
             float R = IMAGE_MIDPOINT - middle;
 
-            float rawAngle = ( (slice.angle + 45) * pi / 180 )+angleOffset; // Convert angle to radians
+
+            float rawAngle = ((slice.angle+ angleOffset) * pi / 180); // Convert angle to radians
 
             GLfloat X = (R - 5) * cos(rawAngle);
             GLfloat Z = (R + 5) * sin(rawAngle);
+
+            //GLfloat X = (R) * cos(rawAngle);
+            //GLfloat Z = (R) * sin(rawAngle);
 
             GLfloat normalX = normalizeCoordinate(static_cast<float>(X), n_rows);
             GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), n_cols);
@@ -102,6 +106,135 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
         }
     }
 
+}
+
+void extract_cylindrical_pts_2(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
+
+    // Image Height & Width:
+    int n_rows = slice.processed_matrix.rows;
+    int n_cols = slice.processed_matrix.cols;
+
+    //TODO: Remove the Hard Code on IMG_MIDPOINT
+    int IMAGE_MIDPOINT = 280;
+
+    for (int row = 0; row < n_rows; row++) {
+        std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
+
+        for (int col = 0; col < n_cols; col++) { // You had 'row++' here
+            if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
+                cv::Vec3b pixel = slice.processed_matrix.at<cv::Vec3b>(row, col);
+                int r = pixel[2];
+                int g = pixel[1];
+                int b = pixel[0];
+
+                float brightness = (1 * r + 0.5 * g + 0.7 * b);
+
+                if (brightness > 35) {    //TODO: Remove the Hard Code?
+                    activated_cols.push_back(col);
+                }
+
+            }
+        }
+
+        if (!activated_cols.empty()) {
+            int middle = getMiddleElement(activated_cols);
+
+            //? For Debug:
+            cv::Point xyPoint(middle, row);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints; //needs to be array for CV::OUTPUT_ARRAY
+
+            // Apply the camera calibration and distortion correction
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+
+            //
+            //int Z = dstPoints[0].y; //Z is up in Cylindrical
+            int Y = row*1.45;
+            float R = IMAGE_MIDPOINT - middle;
+
+
+            float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
+
+                GLfloat X = R;
+                GLfloat Z = R; //! Note, this should be divided by tan(45 deg) , 45 deg being the Lazer Angle with respect to camera, here (tan45 deg) = 1 so idc 
+
+            //GLfloat X = (R-5) * cos(rawAngle);
+            //GLfloat Z = (R+5) * sin(rawAngle);
+
+            GLfloat normalX = normalizeCoordinate(static_cast<float>(X), n_rows);
+            GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), n_cols);
+
+            //double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+
+            GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_rows);
+
+            GLfloat theta = rawAngle;
+
+            cv::Matx33f rotationMatrix(
+                cos(theta), 0, sin(theta),
+                0, 1, 0,
+                -sin(theta), 0, cos(theta)
+            );
+
+            cv::Vec3f point(normalX, normalY, normalZ);
+            point = rotationMatrix * point;
+
+            normalX = point[0];
+            normalY = point[1];
+            normalZ = point[2];
+
+            slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
+        }
+    }
+
+}
+
+std::vector<glm::vec3> test_reconstruction() {
+
+    std::vector<glm::vec3> ret = {};
+
+    float CONSTANT_RADIUS = 100;
+
+    for (size_t x = 0; x < 360; x++) { //! X is the angle here
+        float rawAngle = ((x + 45) * pi / 180);
+
+        GLfloat X = (CONSTANT_RADIUS - 7.5);
+        GLfloat Z = (CONSTANT_RADIUS + 7.5);
+        GLfloat Y = 100;
+
+        GLfloat normalX = normalizeCoordinate(static_cast<float>(X), 240);
+        GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), 320);
+
+        //double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+
+        GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), 320);
+
+        //normalX = normalX * cos(theta); // Apply rotation matrix
+        //normalZ = normalZ * sin(theta); // Apply rotation matrix
+
+        GLfloat theta = rawAngle;
+
+        cv::Matx33f rotationMatrix(
+            cos(theta), 0, sin(theta),
+            0, 1, 0,
+            -sin(theta), 0, cos(theta)
+        );
+
+        cv::Vec3f point(normalX, normalY, normalZ);
+        point = rotationMatrix * point;
+
+        normalX = point[0];
+        normalY = point[1];
+        normalZ = point[2];
+
+        ret.push_back(glm::vec3(normalX, normalY, normalZ));
+    }
+
+    return ret;
 }
 
 

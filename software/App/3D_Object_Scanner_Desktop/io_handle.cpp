@@ -69,7 +69,9 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
                         s.on_img = ON;
                         s.angle = angle; //since we load angle info from ON img
                     }
-                    if (!OFF.empty()) { s.off_img = OFF; }
+                    if (!OFF.empty()) { 
+                        s.off_img = OFF; 
+                    }
 
                     lazerSlices.push_back(s);
                 }
