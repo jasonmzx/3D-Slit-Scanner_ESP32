@@ -285,12 +285,12 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path) {
             r = 0.0f; g = 1.0f; b = 0.0f;
         }
         else {
-            r = 0.5f; g = 0.0f; b = 1.0f;
+            r = 1.0f; g = 0.0f; b = 0.25f;
         }
 
 
         for (LazerSlice slice : preprocessed_dataset) {
-            extract_cylindrical_pts(slice, cameraMatrix, distCoeffs, newCameraMatrix, (i*90.0f));
+            extract_cylindrical_pts_2(slice, cameraMatrix, distCoeffs, newCameraMatrix, (i*125.0f));
             std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
 
             //float angle_sensitive_color = slice.angle = slice.angle / 360.0;

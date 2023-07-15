@@ -159,9 +159,9 @@ void extract_cylindrical_pts_2(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat 
 
             float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
 
-                GLfloat X = R;
-                GLfloat Z = R; //! Note, this should be divided by tan(45 deg) , 45 deg being the Lazer Angle with respect to camera, here (tan45 deg) = 1 so idc 
-
+                GLfloat X = R - (R *angleOffset/1350);
+                GLfloat Z = R - (R* angleOffset/1000); //! Note, this should be divided by tan(45 deg) , 45 deg being the Lazer Angle with respect to camera, here (tan45 deg) = 1 so idc 
+                 
             //GLfloat X = (R-5) * cos(rawAngle);
             //GLfloat Z = (R+5) * sin(rawAngle);
 
