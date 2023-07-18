@@ -14,7 +14,7 @@
 const GLfloat cubeSize = 0.005; // Size of the cube
 
 // Define your pipeline functions.
-VerticeObject pipeline1(std::string dataset) {
+VerticeObject pipeline1(std::string dataset, int midpoint, int cutoff) {
     std::cout << "\n Running pipeline 1...\n";
 
     VerticeObject obj;
@@ -56,7 +56,7 @@ VerticeObject pipeline1(std::string dataset) {
     std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
     for (LazerSlice slice : preprocessed_dataset) {
-        extract_cylindrical_pts_2(slice, cameraMatrix, distCoeffs, newCameraMatrix,0);
+        extract_cylindrical_pts__rot_mat(slice, cameraMatrix, distCoeffs, newCameraMatrix,0);
         std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
 
         float debug_n = slice.angle = slice.angle / 360.0;
@@ -138,7 +138,7 @@ VerticeObject pipeline1(std::string dataset) {
     return obj;
 }
 
-VerticeObject pipeline2(std::string dataset) {
+VerticeObject pipeline2(std::string dataset, int midpoint, int cutoff) {
     std::cout << "\n Running pipeline 2...\n";
     VerticeObject obj;
    float r = 0.0f; float g = 1.0f;  float b = 0.0f;
@@ -223,7 +223,7 @@ VerticeObject pipeline2(std::string dataset) {
         return obj;
 }
 
-VerticeObject pipelineCombo(std::string set_of_datasets_path) {
+VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int cutoff) {
 
 
 
@@ -290,7 +290,7 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path) {
 
 
         for (LazerSlice slice : preprocessed_dataset) {
-            extract_cylindrical_pts_2(slice, cameraMatrix, distCoeffs, newCameraMatrix, (i*125.0f));
+            extract_cylindrical_pts__rot_mat(slice, cameraMatrix, distCoeffs, newCameraMatrix, (i*125.0f));
             std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
 
             //float angle_sensitive_color = slice.angle = slice.angle / 360.0;
@@ -394,7 +394,7 @@ VerticeObject executePipeline(const std::string& pipelineName, const std::string
     }
 
     // Run the pipeline function.
-    return it->second(dataset);
+    return it->second(dataset, midpoint, cutoff);
 }
 
 // Function to print usage information.
