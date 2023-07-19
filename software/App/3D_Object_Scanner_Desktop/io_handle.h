@@ -9,4 +9,6 @@ std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path);
 
 std::vector<std::vector<LazerSlice>> load_set_of_image_datasets(std::string set_folder_path);
 
+void write_to_xyz_file(const std::vector<GLfloat>& xyz_slice, const std::string& filename);
+
 #endif

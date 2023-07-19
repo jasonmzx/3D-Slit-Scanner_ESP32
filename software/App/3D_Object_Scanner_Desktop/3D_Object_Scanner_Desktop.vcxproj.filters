@@ -63,6 +63,9 @@
     <ClCompile Include="camera_calibration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rendering.cpp">
+      <Filter>Source Files\app_algorithm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderClass.h">
@@ -96,6 +99,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="camera_calibration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

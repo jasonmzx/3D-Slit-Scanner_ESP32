@@ -161,6 +161,7 @@
     <ClCompile Include="io_handle.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="reconstruction.cpp" />
+    <ClCompile Include="rendering.cpp" />
     <ClCompile Include="shaderClass.cpp" />
     <ClCompile Include="struct.cpp" />
     <ClCompile Include="tcp_server.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="io_handle.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="reconstruction.h" />
+    <ClInclude Include="rendering.h" />
     <ClInclude Include="shaderClass.h" />
     <ClInclude Include="struct.h" />
     <ClInclude Include="VAO.h" />

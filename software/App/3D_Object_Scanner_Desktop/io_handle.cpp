@@ -150,5 +150,25 @@ std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path) {
     return images;
 }
 
+void write_to_xyz_file(const std::vector<GLfloat>& xyz_slice, const std::string& filename) {
+    // Convert filename to wide string
+    std::wstring wide_filename(filename.begin(), filename.end());
 
+    // Create file
+    HANDLE hFile = CreateFile(wide_filename.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        std::cerr << "Unable to open file " << filename << " for writing." << std::endl;
+        return;
+    }
+
+    // Write to file
+    for (size_t i = 0; i < xyz_slice.size(); i += 3) {
+        std::string line = std::to_string(xyz_slice[i]) + " " + std::to_string(xyz_slice[i + 1]) + " " + std::to_string(xyz_slice[i + 2]) + "\n";
+        DWORD bytesWritten;
+        WriteFile(hFile, line.c_str(), line.size(), &bytesWritten, NULL);
+    }
+
+    // Close file
+    CloseHandle(hFile);
+}
 
