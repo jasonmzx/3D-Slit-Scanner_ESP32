@@ -1,5 +1,6 @@
 #include "image_preproc.h"
 
+bool PREPROC_DEBUG = false;
 
 std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset) {
 
@@ -22,6 +23,28 @@ std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset
         //! Step 2. Binary or Absolute Difference between Blurred imgs >> Binary Difference
 
         cv::absdiff(processed_off, processed_on, proc_diff);
+
+        //! Step 3. Grayscale IMG
+
+        cv::Mat proc_diff_gray;
+        cv::cvtColor(proc_diff, proc_diff_gray, cv::COLOR_BGR2GRAY);
+
+        //? Step 4. Canny and Dilation:
+        // Apply Canny Edge Detection
+
+        cv::Mat edges;
+        double threshold1 = 50;  // threshold for the hysteresis procedure
+        double threshold2 = 150; // threshold for the hysteresis procedure
+        cv::Canny(proc_diff_gray, edges, threshold1, threshold2);
+
+        // Use dilation to connect the broken lines
+
+        cv::Mat dilated_edges;
+        int dilation_size = 1; // adjust this parameter to get the desired thickness
+        cv::Mat element = getStructuringElement(cv::MORPH_RECT,
+            cv::Size(2 * dilation_size + 1, 2 * dilation_size + 1),
+            cv::Point(dilation_size, dilation_size));
+        cv::dilate(edges, dilated_edges, element);
 
         //TODO: More Preprocessing ...
 
@@ -51,12 +74,24 @@ std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset
 
         slice.processed_matrix = proc_diff;
 
-        /*if (PREPROC_DEBUG) {
+        if (PREPROC_DEBUG) {
+            // Make a deep copy of proc_diff
+            cv::Mat proc_diff_copy = proc_diff.clone();
+
+            // Draw a vertical line on the image copy
+            cv::Point pt1(280, 0);
+            cv::Point pt2(280, proc_diff_copy.rows); // Assuming the line spans the entire height of the image
+            cv::Scalar color(0, 255, 0); // RGB color for the line. This is green.
+            int thickness = 2; // Thickness of the line
+            cv::line(proc_diff_copy, pt1, pt2, color, thickness);
+
+            // Display the modified image
             cv::namedWindow("imgProc", cv::WINDOW_NORMAL);
             cv::resizeWindow("imgProc", 1000, 1000);
-            cv::imshow("imgProc", proc_diff);
+            cv::imshow("imgProc", proc_diff_copy);
             cv::waitKey(0);
-        }*/
+        }
+
     }
 
     return dataset;

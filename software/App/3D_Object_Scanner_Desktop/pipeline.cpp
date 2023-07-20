@@ -123,7 +123,6 @@ VerticeObject pipeline2(std::string dataset, int midpoint, int cutoff) {
 VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int cutoff) {
 
 
-
     VerticeObject obj;
 
     //! Load in List of datasets :
@@ -171,6 +170,8 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int 
 
     std::vector<GLfloat> xyz_slice = {}; //Flattened XYZ Slice array
 
+    std::vector<std::vector<GLfloat>> raw_mesh_points = {};
+
     int i = 0;
     for (std::vector<LazerSlice> preprocessed_dataset : set_of_preprocessed_datasets) {
 
@@ -185,7 +186,8 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int 
             r = 1.0f; g = 0.0f; b = 0.25f;
         }
 
-
+        std::vector<GLfloat > mesh_pts = {};
+         
         for (LazerSlice slice : preprocessed_dataset) {
             extract_cylindrical_pts__rot_mat(slice, cameraMatrix, distCoeffs, newCameraMatrix, (i*125.0f));
             std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
@@ -208,10 +210,19 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int 
                     point[0] - cubeSize, point[1] + cubeSize, point[2] + cubeSize, r,g,b  // Vertex 8 (top-left-front)
                     });
 
+                mesh_pts.reserve(3);
+
+                mesh_pts.insert(mesh_pts.end(), {
+                    point[0] , point[1] , point[2]
+                });
             }
+
+
 
         }
         i++;
+        //All pts appended, add to raw mesh list
+        raw_mesh_points.push_back(mesh_pts);
     }
 
     GLfloat* xyz_slice_converted = new GLfloat[xyz_slice.size()]; // allocate memory for the array
