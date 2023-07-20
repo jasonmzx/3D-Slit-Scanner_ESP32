@@ -161,7 +161,7 @@ void receive_thread(SOCKET s, std::string folderPath)
                 break;
             }
         } while (true);
-
+        closesocket(clientS);
     } while (true); 
 }
 
