@@ -108,7 +108,7 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
 }
 
-void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
+void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
 
     // Image Height & Width:
     int n_rows = slice.processed_matrix.rows;
@@ -128,9 +128,9 @@ void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, c
                 int g = pixel[1];
                 int b = pixel[0];
 
-                float brightness = (1 * r + 0.5 * g + 0.7 * b);
+                float brightness = (1 * r + 0.5 * g + 0.5 * b);
 
-                if (brightness > 40) {    //TODO: Remove the Hard Code?
+                if (brightness > 100) {    //TODO: Remove the Hard Code?
                     activated_cols.push_back(col);
                 }
 
@@ -154,7 +154,7 @@ void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, c
 
             //
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Y = row*1.75;
+            int Y = row*1.89;
             float R = IMAGE_MIDPOINT - middle;
 
 
@@ -165,6 +165,94 @@ void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, c
             GLfloat X = R / tan(0.261799);
                 GLfloat Z = R / tan(0.261799);
                  
+            //GLfloat X = (R-5) * cos(rawAngle);
+            //GLfloat Z = (R+5) * sin(rawAngle);
+
+            GLfloat normalX = normalizeCoordinate(static_cast<float>(X), n_rows);
+            GLfloat normalY = normalizeCoordinate(static_cast<float>(Y), n_cols);
+
+            //double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
+
+            GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_rows);
+
+            GLfloat theta = rawAngle;
+
+            cv::Matx33f rotationMatrix(
+                cos(theta), 0, sin(theta),
+                0, 1, 0,
+                -sin(theta), 0, cos(theta)
+            );
+
+            cv::Vec3f point(normalX, normalY, normalZ);
+            point = rotationMatrix * point;
+
+            normalX = point[0];
+            normalY = point[1];
+            normalZ = point[2];
+
+            slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
+        }
+    }
+
+}
+
+void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
+
+    // Image Height & Width:
+    int n_rows = slice.processed_matrix.rows;
+    int n_cols = slice.processed_matrix.cols;
+
+    //TODO: Remove the Hard Code on IMG_MIDPOINT
+
+    int IMAGE_MIDPOINT = 204;
+
+    for (int row = 0; row < n_rows; row++) {
+        std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
+
+        for (int col = 0; col < n_cols; col++) { // You had 'row++' here
+            if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
+                cv::Vec3b pixel = slice.processed_matrix.at<cv::Vec3b>(row, col);
+                int r = pixel[2];
+                int g = pixel[1];
+                int b = pixel[0];
+
+                float brightness = (1 * r + 0.5 * g + 0.5 * b);
+
+                if (brightness > 100) {    //TODO: Remove the Hard Code?
+                    activated_cols.push_back(col);
+                }
+
+            }
+        }
+
+        if (!activated_cols.empty()) {
+            int middle = getMiddleElement(activated_cols);
+
+            //? For Debug:
+            cv::Point xyPoint(middle, row);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints; //needs to be array for CV::OUTPUT_ARRAY
+
+            // Apply the camera calibration and distortion correction
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+
+            //
+            //int Z = dstPoints[0].y; //Z is up in Cylindrical
+            int Y = row * 1.99;
+            float R = IMAGE_MIDPOINT - middle;
+
+
+            float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
+
+            float lazerAngle = 15 * (pi / 180);
+
+            GLfloat X = R / tan(0.3577925);
+            GLfloat Z = R / tan(0.3577925);
+
             //GLfloat X = (R-5) * cos(rawAngle);
             //GLfloat Z = (R+5) * sin(rawAngle);
 
