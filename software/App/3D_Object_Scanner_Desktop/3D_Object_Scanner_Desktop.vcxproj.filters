@@ -66,6 +66,9 @@
     <ClCompile Include="rendering.cpp">
       <Filter>Source Files\app_algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="console_printing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderClass.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rendering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="console_printing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

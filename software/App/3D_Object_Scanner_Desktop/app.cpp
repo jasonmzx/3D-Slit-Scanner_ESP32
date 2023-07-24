@@ -26,6 +26,7 @@ void tcp_server_main();
 #include "pipeline.h"
 #include "io_handle.h"
 #include "camera_calibration.h"
+#include "console_printing.h"
 
 
 //	OpenGL Classes Imports:
@@ -34,13 +35,6 @@ void tcp_server_main();
 #include "VBO.h"
 #include "EBO.h"
 #include "Camera.h"
-
-//CLI Colors:
-const std::string red("\033[0;31m");
-const std::string green("\033[1;32m");
-const std::string yellow("\033[1;33m");
-const std::string cyan("\033[0;36m");
-const std::string reset("\033[0m");
 
 // CLI COMMANDS
 
@@ -255,8 +249,8 @@ int main() {
 			}
 			else if (tokens[0] == "r" || tokens[0] == "render") {
 				if (tokens.size() < 2) {
-					std::cerr << "Error: Render command requires a directory path.\n";
-
+					std::string e = "Render command requires a directory path."; //TODO: swithc this to config path
+					print_error(e);
 				}
 				else {
 					RenderCommand renderCommand;
@@ -308,9 +302,9 @@ int main() {
 			else if (tokens[0] == "cc" || tokens[0] == "camera-calib") {
 				
 				//Assert for Correct Command Size:
-				if (tokens.size() < 1) {
-					std::cerr << "Error: Camera Calibration Command requires a directory path.\n";
-
+				if (tokens.size() < 2) { 
+					std::string e ="Camera Calibration Command requires a directory path.";
+					print_error(e);
 				}
 				else {
 
@@ -325,7 +319,8 @@ int main() {
 			else if (tokens[0] == "mc" || tokens[0] == "mkcfg" || tokens[0] == "mkconf") {
 				// Ensure we have enough arguments for mandatory fields
 				if (tokens.size() < 6) {
-					std::cerr << "Error: Making of Dataset Config File requires directory, dataset_title, step_angle_interval, adjustment_per_angle, relative_lazer_angle, and pixel_midpoint_x arguments.\n";
+					std::string e = "Making of Dataset Config File requires more arguments...";
+					print_error(e);
 				}
 				else {
 					DatasetConfig configCommand;
@@ -366,9 +361,11 @@ int main() {
 				}
 			}
 
+			//TODO: Implement `h` , `help` command
 
 			else {
-				std::cerr << "Error: Unknown command.\n";
+			std::string unknown_err = "Unknown Command : `" + tokens[0] + "` ... use the `h` or `help` command for help.";
+			print_error(unknown_err);
 			}
 		}
 	}

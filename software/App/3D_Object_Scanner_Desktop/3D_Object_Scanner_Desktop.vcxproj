@@ -155,6 +155,7 @@
     <ClCompile Include="app.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="camera_calibration.cpp" />
+    <ClCompile Include="console_printing.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="image_preproc.cpp" />
@@ -171,6 +172,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="camera_calibration.h" />
+    <ClInclude Include="console_printing.h" />
     <ClInclude Include="EBO.h" />
     <ClInclude Include="image_preproc.h" />
     <ClInclude Include="io_handle.h" />
