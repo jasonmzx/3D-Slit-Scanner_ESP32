@@ -24,7 +24,9 @@ void tcp_server_main();
 
 // Project Core Imports:
 #include "pipeline.h"
+#include "io_handle.h"
 #include "camera_calibration.h"
+
 
 //	OpenGL Classes Imports:
 #include "shaderClass.h"
@@ -33,6 +35,12 @@ void tcp_server_main();
 #include "EBO.h"
 #include "Camera.h"
 
+//CLI Colors:
+const std::string red("\033[0;31m");
+const std::string green("\033[1;32m");
+const std::string yellow("\033[1;33m");
+const std::string cyan("\033[0;36m");
+const std::string reset("\033[0m");
 
 // CLI COMMANDS
 
@@ -57,11 +65,14 @@ struct RenderCommand {
 struct CameraCalibrationCommand {
 	std::string directory;
 };
+
 //CLI helpers
 
 bool is_integer(const std::string& s) {
 	return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
+
+//Constants
 
 const unsigned int width = 1000;
 const unsigned int height = 1000;
@@ -201,7 +212,7 @@ void programCredit() {
 	std::string text_decor = " #################### ";
 	std::string r_p = " -> ";
 
-	std::cout << text_decor << "Lazer Scanner / Profiler into 3D Project - DESKTOP APP - " << text_decor << std::endl;
+	std::cout << yellow << text_decor << "Lazer Scanner / Profiler into 3D Project - DESKTOP APP - " << text_decor << reset << std::endl;
 	std::cout << r_p << "Run TCP Server | rtcp [INT port]" << std::endl;
 	std::cout << r_p << "Render Dataset | render <STR path/to/dataset> [INT midpoint] [INT cutoff] [STR pipeline]\n" << std::endl;
 
@@ -225,7 +236,7 @@ int main() {
 
 		// ! COMMAND EXECUTIONS HERE : 		
 	
-			if (tokens[0] == "rt" || tokens[0] == "rtcp" || tokens[0] == "t") {
+			if (tokens[0] == "rt" || tokens[0] == "rtcp") {
 				RunTcpCommand runTcpCommand;
 				runTcpCommand.isPortSet = false;
 
@@ -294,7 +305,7 @@ int main() {
 					std::cout << "\n";
 				}
 			}
-			else if (tokens[0] == "cc" || tokens[0] == "camera") {
+			else if (tokens[0] == "cc" || tokens[0] == "camera-calib") {
 				
 				//Assert for Correct Command Size:
 				if (tokens.size() < 1) {
@@ -311,6 +322,50 @@ int main() {
 				
 
 			}
+			else if (tokens[0] == "mc" || tokens[0] == "mkcfg" || tokens[0] == "mkconf") {
+				// Ensure we have enough arguments for mandatory fields
+				if (tokens.size() < 6) {
+					std::cerr << "Error: Making of Dataset Config File requires directory, dataset_title, step_angle_interval, adjustment_per_angle, relative_lazer_angle, and pixel_midpoint_x arguments.\n";
+				}
+				else {
+					DatasetConfig configCommand;
+					
+					//Creation of Dataset Config
+					
+					configCommand.directory = tokens[1];
+					configCommand.dataset_title = tokens[2];
+					configCommand.step_angle_interval = std::stof(tokens[3]);
+					configCommand.adjustment_per_angle = std::stof(tokens[4]);
+					configCommand.relative_lazer_angle = std::stof(tokens[5]);
+					configCommand.pixel_midpoint_x = std::stoi(tokens[6]);
+
+					// Optional arguments
+					if (tokens.size() > 7 && is_integer(tokens[7])) {
+						configCommand.top_cutoff = std::stoi(tokens[7]);
+					}
+					if (tokens.size() > 8 && is_integer(tokens[8])) {
+						configCommand.bottom_cutoff = std::stoi(tokens[8]);
+					}
+
+					// CREATION OF FILE:
+
+					//Get filename
+					std::string cfname;
+					std::cout << green << "Enter a filename for your Config File : <config name>.cfg" << reset << std::endl;
+					std::cin >> cfname;
+
+					//! Check if USER enters a config name with file extension already, If so, don't add extension to str.
+					// The string is either too short to contain ".cfg", or it does not end with ".cfg" therefore add it
+					if (cfname.length() < 4 || cfname.rfind(".cfg") != cfname.length() - 4) {cfname += ".cfg";}
+
+					WriteConfigToFile(configCommand, cfname);
+
+					// Print command data
+					//TODO: print nicely
+					std::cout << "\n";
+				}
+			}
+
 
 			else {
 				std::cerr << "Error: Unknown command.\n";

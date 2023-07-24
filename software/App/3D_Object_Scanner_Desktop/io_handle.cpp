@@ -2,7 +2,8 @@
 
 //Windows Import
 #include <windows.h> //For WIN32_FIND_DATAA, HANDLE, and all the FileSystem I.O Wrappers for Windows OS
-
+#include <fstream>
+#include "struct.h"
 
 std::string loghead = "[ IO_HANDLE.CPP ] >> ";
 
@@ -150,8 +151,76 @@ std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path) {
     return images;
 }
 
+//! ####################### SERIALIZE / DESERIALIZE DATASET CONFIGURATION FILES  ####################### 
+
+void WriteConfigToFile(const DatasetConfig& command, const std::string& filename) {
+    std::ofstream file(filename, std::ios::binary);
+
+    if (!file) {
+        std::cerr << "Cannot open file to write: " << filename << "\n";
+        return;
+    }
+
+    // Write each member variable
+    size_t length = command.directory.size(); //Unknown Length, so let's use `size_t`
+
+    file.write(reinterpret_cast<const char*>(&length), sizeof(length));
+    file.write(command.directory.c_str(), length);
+
+    length = command.dataset_title.size();
+    file.write(reinterpret_cast<const char*>(&length), sizeof(length));
+    file.write(command.dataset_title.c_str(), length);
+
+    file.write(reinterpret_cast<const char*>(&command.step_angle_interval), sizeof(command.step_angle_interval));
+    file.write(reinterpret_cast<const char*>(&command.adjustment_per_angle), sizeof(command.adjustment_per_angle));
+    file.write(reinterpret_cast<const char*>(&command.relative_lazer_angle), sizeof(command.relative_lazer_angle));
+    file.write(reinterpret_cast<const char*>(&command.pixel_midpoint_x), sizeof(command.pixel_midpoint_x));
+    file.write(reinterpret_cast<const char*>(&command.top_cutoff), sizeof(command.top_cutoff));
+    file.write(reinterpret_cast<const char*>(&command.bottom_cutoff), sizeof(command.bottom_cutoff));
+
+    file.close();
+}
+
+// Reads a MakeDatasetConfigCommand from a file
+DatasetConfig ReadConfigFromFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary);
+
+    if (!file) {
+        std::cerr << "Cannot open file to read: " << filename << "\n";
+        return DatasetConfig();  // return empty struct
+    }
+
+    DatasetConfig command;
+
+    // Read each member variable
+    size_t length;
+    file.read(reinterpret_cast<char*>(&length), sizeof(length));
+    command.directory.resize(length);
+    file.read(&command.directory[0], length);
+
+    file.read(reinterpret_cast<char*>(&length), sizeof(length));
+    command.dataset_title.resize(length);
+    file.read(&command.dataset_title[0], length);
+
+    file.read(reinterpret_cast<char*>(&command.step_angle_interval), sizeof(command.step_angle_interval));
+    file.read(reinterpret_cast<char*>(&command.adjustment_per_angle), sizeof(command.adjustment_per_angle));
+    file.read(reinterpret_cast<char*>(&command.relative_lazer_angle), sizeof(command.relative_lazer_angle));
+    file.read(reinterpret_cast<char*>(&command.pixel_midpoint_x), sizeof(command.pixel_midpoint_x));
+    file.read(reinterpret_cast<char*>(&command.top_cutoff), sizeof(command.top_cutoff));
+    file.read(reinterpret_cast<char*>(&command.bottom_cutoff), sizeof(command.bottom_cutoff));
+
+    file.close();
+
+    return command;
+}
+
+
+
+//! ####################### POINT CLOUD & OTHER 3D | FILE EXPORTS  ####################### 
+
+//Export to .xyz Point Cloud Format (Importable in Meshlab)
 void write_to_xyz_file(const std::vector<GLfloat>& xyz_slice, const std::string& filename) {
-    // Convert filename to wide string
+    // Convert Filename to wide string
     std::wstring wide_filename(filename.begin(), filename.end());
 
     // Create file
@@ -161,11 +230,11 @@ void write_to_xyz_file(const std::vector<GLfloat>& xyz_slice, const std::string&
         return;
     }
 
-    // Write to file
+    // Write X, Y, Z coords from vector of Floats into file
     for (size_t i = 0; i < xyz_slice.size(); i += 3) {
         std::string line = std::to_string(xyz_slice[i]) + " " + std::to_string(xyz_slice[i + 1]) + " " + std::to_string(xyz_slice[i + 2]) + "\n";
         DWORD bytesWritten;
-        WriteFile(hFile, line.c_str(), line.size(), &bytesWritten, NULL);
+        WriteFile(hFile, line.c_str(), line.size(), &bytesWritten, NULL); //Append line by line
     }
 
     // Close file

@@ -11,4 +11,9 @@ std::vector<std::vector<LazerSlice>> load_set_of_image_datasets(std::string set_
 
 void write_to_xyz_file(const std::vector<GLfloat>& xyz_slice, const std::string& filename);
 
+
+void WriteConfigToFile(const DatasetConfig& command, const std::string& filename);
+
+DatasetConfig ReadConfigFromFile(const std::string& filename);
+
 #endif
