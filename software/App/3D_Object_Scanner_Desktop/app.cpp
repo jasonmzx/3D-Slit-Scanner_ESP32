@@ -353,7 +353,7 @@ int main() {
 					// The string is either too short to contain ".cfg", or it does not end with ".cfg" therefore add it
 					if (cfname.length() < 4 || cfname.rfind(".cfg") != cfname.length() - 4) {cfname += ".cfg";}
 
-					WriteConfigToFile(configCommand, cfname);
+					WriteConfigToFile(configCommand, cfname, std::string("configs"));
 
 					// Print command data
 					//TODO: print nicely

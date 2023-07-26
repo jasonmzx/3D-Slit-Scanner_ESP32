@@ -204,7 +204,7 @@ void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, c
 
     //TODO: Remove the Hard Code on IMG_MIDPOINT
 
-    int IMAGE_MIDPOINT = 203;
+    int IMAGE_MIDPOINT = 236;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -283,6 +283,81 @@ void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, c
     }
 
 }
+
+void extract_cylindrical_pts__rot_mat_EX(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
+    // Image Height & Width:
+    int n_rows = slice.processed_matrix.rows;
+    int n_cols = slice.processed_matrix.cols;
+
+    // Translation applied
+
+    cv::Vec3f T(0, 100, 30); // Translation vector
+
+    int IMAGE_MIDPOINT = 163;
+
+    for (int row = 0; row < n_rows; row++) {
+        std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
+
+        for (int col = 0; col < n_cols; col++) {
+            cv::Vec3b pixel = slice.processed_matrix.at<cv::Vec3b>(row, col);
+            int r = pixel[2];
+            int g = pixel[1];
+            int b = pixel[0];
+
+            float brightness = (1 * r + 0.5 * g + 0.5 * b);
+
+            if (brightness > 100) {
+                activated_cols.push_back(col);
+            }
+        }
+
+        if (!activated_cols.empty()) {
+            int middle = getMiddleElement(activated_cols);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints;
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+            int Y = row;
+            float R = IMAGE_MIDPOINT - middle;
+
+            float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
+
+            GLfloat X = R / tan(0.3577925);
+            GLfloat Z = R / tan(0.3577925);
+
+            GLfloat theta = rawAngle;
+
+            // Combined Rotation and Translation matrix
+            cv::Matx44f transformationMatrix(
+                cos(theta), 0, sin(theta), T[0],
+                0, 1, 0, T[1],
+                -sin(theta), 0, cos(theta), T[2],
+                0, 0, 0, 1
+            );
+
+            cv::Vec4f point(X, Y, Z, 1.0);
+            point = transformationMatrix * point; // Apply transformation matrix
+
+            // Convert back to Cartesian coordinates:
+            GLfloat pointWorldX = static_cast<float>(point(0));
+            GLfloat pointWorldY = static_cast<float>(point(1));
+            GLfloat pointWorldZ = static_cast<float>(point(2));
+
+            // Normalization after transformation
+            GLfloat normalX = normalizeCoordinate(pointWorldX, n_rows);
+            GLfloat normalY = normalizeCoordinate(pointWorldY, n_cols);
+            GLfloat normalZ = normalizeCoordinate(pointWorldZ, n_rows);
+
+            slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ));
+        }
+    }
+}
+
+
+
 
 void extract_cylindrical_pts__rot_mat_45(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
 

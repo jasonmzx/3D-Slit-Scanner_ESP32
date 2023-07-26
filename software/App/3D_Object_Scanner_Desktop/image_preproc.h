@@ -5,4 +5,6 @@
 
 std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset);
 
+std::vector<LazerSlice> preproc_image_dataset_2(std::vector<LazerSlice>& dataset);
+
 #endif

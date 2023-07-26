@@ -3,7 +3,10 @@
 //Windows Import
 #include <windows.h> //For WIN32_FIND_DATAA, HANDLE, and all the FileSystem I.O Wrappers for Windows OS
 #include <fstream>
+
+//Local Imports
 #include "struct.h"
+#include "console_printing.h"
 
 std::string loghead = "[ IO_HANDLE.CPP ] >> ";
 
@@ -11,6 +14,15 @@ bool folder_exists(const std::string& folderPath)
 {
     DWORD fileAttributes = GetFileAttributesA(folderPath.c_str()); //Get the folder
     return (fileAttributes != INVALID_FILE_ATTRIBUTES && (fileAttributes & FILE_ATTRIBUTE_DIRECTORY)); //Ternary check if it exists, return BOOLEAN
+}
+
+void create_folder_if_dont_exist(const std::string& filename) {
+    DWORD ftyp = GetFileAttributesA(filename.c_str());
+    if (ftyp == INVALID_FILE_ATTRIBUTES) {
+        // If the directory does not exist, create it
+        CreateDirectoryA(filename.c_str(), NULL);
+    }
+    //else if (!(ftyp & FILE_ATTRIBUTE_DIRECTORY)) {}
 }
 
 //! Loads Image Datasets in Vector of LazerSlice's ( Essentially loads in Dataset with Metadata )
@@ -153,11 +165,18 @@ std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path) {
 
 //! ####################### SERIALIZE / DESERIALIZE DATASET CONFIGURATION FILES  ####################### 
 
-void WriteConfigToFile(const DatasetConfig& command, const std::string& filename) {
-    std::ofstream file(filename, std::ios::binary);
+
+
+void WriteConfigToFile(DatasetConfig& command, std::string& filename, std::string config_directory) {
+    
+    create_folder_if_dont_exist(config_directory);
+
+    std::string fullPath = config_directory + "\\" + filename;
+    std::ofstream file(fullPath, std::ios::binary);
 
     if (!file) {
-        std::cerr << "Cannot open file to write: " << filename << "\n";
+        std::string e = "There was an issue opening the file binary ... (io_handle.cpp)";
+        print_error(e);
         return;
     }
 
