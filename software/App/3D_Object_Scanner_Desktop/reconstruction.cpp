@@ -204,7 +204,7 @@ void extract_cylindrical_pts__rot_mat(LazerSlice& slice, cv::Mat cameraMatrix, c
 
     //TODO: Remove the Hard Code on IMG_MIDPOINT
 
-    int IMAGE_MIDPOINT = 204;
+    int IMAGE_MIDPOINT = 203;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
