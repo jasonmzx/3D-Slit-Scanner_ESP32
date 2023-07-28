@@ -117,6 +117,7 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
     //TODO: Remove the Hard Code on IMG_MIDPOINT
 
     int IMAGE_MIDPOINT = 191;
+    cv::Vec3f tvec_avg(0.06560291, -3.72631084, 12.95946175);
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -174,6 +175,94 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             //double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
 
             GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_rows);
+
+            GLfloat theta = rawAngle;
+
+            cv::Matx33f rotationMatrix(
+                cos(theta), 0, sin(theta),
+                0, 1, 0,
+                -sin(theta), 0, cos(theta)
+            );
+
+            cv::Vec3f point(normalX, normalY, normalZ);
+            point = rotationMatrix * point; //Rotation Matrix
+            point = point + tvec_avg; //Extrincts T-Vec Transformation
+
+            normalX = point[0];
+            normalY = point[1];
+            normalZ = point[2];
+
+            slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
+        }
+    }
+
+}
+
+void extract_cylindrical_pts__rot_mat_15_planar(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
+
+    // Image Height & Width:
+    int n_rows = slice.processed_matrix.rows;
+    int n_cols = slice.processed_matrix.cols;
+
+    //TODO: Remove the Hard Code on IMG_MIDPOINT
+
+    for (int row = 0; row < n_rows; row++) {
+        std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
+
+        for (int col = 0; col < n_cols; col++) { // You had 'row++' here
+            if (row >= 0 && row < n_rows && col >= 0 && col < n_cols) {
+                cv::Vec3b pixel = slice.processed_matrix.at<cv::Vec3b>(row, col);
+                int r = pixel[2];
+                int g = pixel[1];
+                int b = pixel[0];
+
+                float brightness = (1 * r + 0.5 * g + 0.5 * b);
+
+                if (brightness > 100) {    //TODO: Remove the Hard Code?
+                    activated_cols.push_back(col);
+                }
+
+            }
+        }
+
+        if (!activated_cols.empty()) {
+            int middle = getMiddleElement(activated_cols);
+
+            //? For Debug:
+            cv::Point xyPoint(middle, row);
+
+            std::vector<cv::Point2f> srcPoints;
+            srcPoints.push_back(cv::Point2f(static_cast<float>(middle), static_cast<float>(row)));
+
+            std::vector<cv::Point2f> dstPoints; //needs to be array for CV::OUTPUT_ARRAY
+
+            // Apply the camera calibration and distortion correction
+            cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
+
+            float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
+
+            // Coefficients from the plane equation:
+            double A = 0.98105716;
+            double B = -0.01899739;
+            double C = -0.016729259724092005;
+
+            // Image coordinates
+
+            double x = dstPoints[0].x;
+            double y = dstPoints[0].y;
+
+            double Z = A * x + B * y + C;
+
+            // Compute the z value
+
+            GLfloat normalX = normalizeCoordinate(static_cast<float>(x), n_rows);
+            GLfloat normalY = normalizeCoordinate(static_cast<float>(y), n_cols);
+            GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_rows);
+
+            GLfloat scaleXZ = 1.5;
+
+            normalX = normalX + 0.35;
+            normalZ = normalZ + 0.35;
 
             GLfloat theta = rawAngle;
 

@@ -31,7 +31,27 @@ VerticeObject pipeline1(std::string dataset, int midpoint, int cutoff) {
 
     std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
-    generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_EX);
+    generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_15);
+    return obj;
+}
+
+VerticeObject pipeline1_planar_eq(std::string dataset, int midpoint, int cutoff) {
+    std::cout << "\n Running pipeline 1...\n";
+
+    VerticeObject obj;
+
+    // Load data from Dataset Location
+    std::vector<LazerSlice> loaded_dataset = load_image_dataset(dataset);
+
+    //! PRE PROCESSING STEP :
+
+    std::vector<LazerSlice> preprocessed_dataset = preproc_image_dataset_1(loaded_dataset);
+
+    //! RECONSTRUCTION & BUILDING STEP:
+
+    std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
+
+    generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_15_planar);
     return obj;
 }
 
@@ -288,7 +308,8 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int 
 std::map<std::string, PipelineFunction> pipelineMap = {
     {"pipeline1", pipeline1},
     {"pipeline2", pipeline2},
-    {"pc", pipelineCombo}
+    {"pc", pipelineCombo},
+    {"pa", pipeline1_planar_eq}
 };
 
 // Function to execute a pipeline by name.
