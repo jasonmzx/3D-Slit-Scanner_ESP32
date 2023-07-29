@@ -3,6 +3,31 @@ import numpy as np
 import glob
 from sklearn import linear_model
 
+
+####################### Basic Helpers #######################
+def print_title(str):
+    print("#"*20+' '+str+' '+"#"*20)
+
+def list_of_vec3_avg(vec_of_vec3): 
+    length = len(vec_of_vec3)
+    if length == 0:
+        return [0, 0, 0]
+        
+    sum_0th = sum([sublist[0] for sublist in vec_of_vec3])
+    sum_1st = sum([sublist[1] for sublist in vec_of_vec3])
+    sum_2nd = sum([sublist[2] for sublist in vec_of_vec3])
+
+    average_0th = sum_0th / length
+    average_1st = sum_1st / length
+    average_2nd = sum_2nd / length
+
+    return [average_0th, average_1st, average_2nd]
+
+####################### DEBUG CONTANTS #######################
+
+IMSHOW_FOUND_CIRCLE_GRIDS = True
+IMSHOW_BINARY_DIFFS = True
+
 def find_circle_grid_in_imgs(img_folder):
     # grid size
     pattern_size = (4, 4)
@@ -16,13 +41,12 @@ def find_circle_grid_in_imgs(img_folder):
     imgpoints = [] # 2d points in image plane
 
     # get list of all .jpg images in the folder
-    images = sorted(glob.glob(f"{img_folder}/*.jpg"))
+    glob_default = glob.glob(f"{img_folder}/0*.jpg")
+    glob_lazer = glob.glob(f"{img_folder}/1*.jpg")
 
     # separate the images with and without the laser
-    images_without_laser = images[::2]
-    images_with_laser = images[1::2]
 
-    for img_path in images_without_laser:
+    for img_path in glob_default:
         img = cv2.imread(img_path)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -32,9 +56,12 @@ def find_circle_grid_in_imgs(img_folder):
         if found:
             objpoints.append(objp)
             imgpoints.append(corners)
-            cv2.drawChessboardCorners(img, pattern_size, corners, found)
-            cv2.imshow('Grid', img)
-            cv2.waitKey(0)
+        
+        #* Debug stuff for showing cv mats:
+            if IMSHOW_FOUND_CIRCLE_GRIDS:
+                cv2.drawChessboardCorners(img, pattern_size, corners, found)
+                cv2.imshow('Grid', img)
+                cv2.waitKey(0)
 
     cv2.destroyAllWindows()
 
@@ -53,13 +80,16 @@ def find_circle_grid_in_imgs(img_folder):
 
     avg_tvec = np.mean(tvecs, axis=0)
 
-    print("Average tvec:")
+    print_title("Average of Translation Vector | Avg. T-VEC")
     print(avg_tvec)
 
+    
+    img_plane_equations = []
+
     # for each image with laser, detect laser line and fit plane
-    for i, img_path in enumerate(images_with_laser):
+    for i, img_path in enumerate(glob_lazer):
         
-        img = cv2.imread(images_without_laser[i])
+        img = cv2.imread(glob_default[i])
         img_w_lzr = cv2.imread(img_path)
        
         #! DO BINARY DIFF OF img & img_w_lzr
@@ -69,14 +99,17 @@ def find_circle_grid_in_imgs(img_folder):
         # convert the difference to grayscale
         gray_diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
-        # apply thresholding to get binary image
-        ret, binary_diff = cv2.threshold(gray_diff, 50, 255, cv2.THRESH_BINARY)
+       
+        if IMSHOW_BINARY_DIFFS:
+            cv2.imshow('Binary Difference', diff)
+            cv2.waitKey(0)
 
+        #! Extract 2D Lazer Line Points
         laser_line_points = []
 
-        for y in range(binary_diff.shape[0]):
+        for y in range(gray_diff.shape[0]):
             # get the x-coordinate of the brightest pixel in the row
-            max_x = np.argmax(binary_diff[y])
+            max_x = np.argmax(gray_diff[y])
             laser_line_points.append([max_x, y])
 
         # convert list to numpy array
@@ -107,7 +140,15 @@ def find_circle_grid_in_imgs(img_folder):
         # fit a plane to the 3D points
         model_ransac = linear_model.RANSACRegressor(linear_model.LinearRegression())
         model_ransac.fit(laser_line_points_3d.reshape(-1,3)[:,:2], laser_line_points_3d.reshape(-1,3)[:,2])
-        print(f"Plane equation for image {img_path}: {model_ransac.estimator_.coef_}x + {model_ransac.estimator_.coef_}y + {model_ransac.estimator_.intercept_}")
+
+                            # A * x + B * y + C
+        abc_plane_eq = [model_ransac.estimator_.coef_[0], model_ransac.estimator_.coef_[1], model_ransac.estimator_.intercept_]
+        
+        #print(f"DEBUG: Plane equation for image {img_path}: {abc_plane_eq[0]}x + {abc_plane_eq[1]}y + {abc_plane_eq[2]}")
+        img_plane_equations.append(abc_plane_eq)
+
+    print_title("Average PLANE EQUATION Z = (A)x + (B)y + c ")
+    print(list_of_vec3_avg(img_plane_equations))
 
 # specify the folder containing images
 img_folder = "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/camera-calibration-data/ESP_CAM_Dot_Pattern_Diffs"

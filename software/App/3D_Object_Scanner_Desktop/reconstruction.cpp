@@ -155,7 +155,7 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
 
             //
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Y = row*1.89;
+            int Y = row*2.39;
             float R = IMAGE_MIDPOINT - middle;
 
 
@@ -175,7 +175,7 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             //double result = dstPoints[0].x / tan(45 * pi / 180); // Divide value by tangent of 45 degrees
 
             GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_rows);
-
+            
             GLfloat theta = rawAngle;
 
             cv::Matx33f rotationMatrix(
@@ -186,7 +186,7 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
 
             cv::Vec3f point(normalX, normalY, normalZ);
             point = rotationMatrix * point; //Rotation Matrix
-            point = point + tvec_avg; //Extrincts T-Vec Transformation
+            //point = point + tvec_avg; //Extrincts T-Vec Transformation
 
             normalX = point[0];
             normalY = point[1];
@@ -204,7 +204,8 @@ void extract_cylindrical_pts__rot_mat_15_planar(LazerSlice& slice, cv::Mat camer
     int n_rows = slice.processed_matrix.rows;
     int n_cols = slice.processed_matrix.cols;
 
-    //TODO: Remove the Hard Code on IMG_MIDPOINT
+    // Translation vector
+    cv::Vec3f tVec(0.21455201, -3.96629501, 12.57946175);
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -242,9 +243,9 @@ void extract_cylindrical_pts__rot_mat_15_planar(LazerSlice& slice, cv::Mat camer
             float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
 
             // Coefficients from the plane equation:
-            double A = 0.98105716;
-            double B = -0.01899739;
-            double C = -0.016729259724092005;
+            double A = 0.850421061165774;
+            double B = -0.14967728415001963;
+            double C = -0.13088901666491587;
 
             // Image coordinates
 
@@ -255,15 +256,25 @@ void extract_cylindrical_pts__rot_mat_15_planar(LazerSlice& slice, cv::Mat camer
 
             // Compute the z value
 
+            double tVecMultiplier = 1.25;
+
+            x = x + (tVec[0]* tVecMultiplier);
+            y = y + (tVec[1]* tVecMultiplier);
+            Z = Z + (tVec[2]* tVecMultiplier);
+
             GLfloat normalX = normalizeCoordinate(static_cast<float>(x), n_rows);
             GLfloat normalY = normalizeCoordinate(static_cast<float>(y), n_cols);
             GLfloat normalZ = normalizeCoordinate(static_cast<float>(Z), n_rows);
 
-            GLfloat scaleXZ = 1.5;
+            GLfloat XZ_scale = 0.25;
 
-            normalX = normalX + 0.35;
-            normalZ = normalZ + 0.35;
+            //! IMPORTANT: Must add Scale Factor to X & Z before multiplying, this is equivalent to the IMAGE_MID_POINT correction
 
+            normalX = (normalX + XZ_scale) * (1 + XZ_scale);
+            normalZ = (normalZ + XZ_scale) * (1 + XZ_scale);
+
+            normalY = normalY * (1+XZ_scale);
+            
             GLfloat theta = rawAngle;
 
             cv::Matx33f rotationMatrix(

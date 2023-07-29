@@ -16,7 +16,7 @@ double cy = 320.0;
 //cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
 
 //ESP found camera mat
-cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << 328.75231397, 0, 168.74716003, 0, 337.66475247, 124.2397927, 0, 0, 1);
+cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << 330.37685371, 0, 168.74716003, 0, 337.66475247, 129.659852, 0, 0, 1);
 
 //! Define the distortion coefficients
 
@@ -26,7 +26,7 @@ double p1 = 0.0;
 double p2 = 0.0;
 double k3 = 0.01;
 //cv::Mat distCoeffs = (cv::Mat_<double>(5, 1) << k1, k2, p1, p2, k3);
-cv::Mat distCoeffs = (cv::Mat_<double>(5, 1) << 0.13262935, -0.53795084, -0.00233453, 0.00130221, 0.0794583);
+cv::Mat distCoeffs = (cv::Mat_<double>(5, 1) << 0.10513071, -0.62082709,  0.00165353, -0.00295972,  1.04980143);
 
 // Cube Size
 const GLfloat cubeSize = 0.005;
