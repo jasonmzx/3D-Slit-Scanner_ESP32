@@ -117,7 +117,6 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
     //TODO: Remove the Hard Code on IMG_MIDPOINT
 
     int IMAGE_MIDPOINT = 191;
-    cv::Vec3f tvec_avg(0.06560291, -3.72631084, 12.95946175);
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -152,19 +151,17 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             // Apply the camera calibration and distortion correction
             cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
 
-
             //
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Y = row*2.39;
+            int Y = row*1.89;
             float R = IMAGE_MIDPOINT - middle;
-
 
             float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
 
             float lazerAngle = 15 * (pi / 180);
 
-            GLfloat X = R / tan(0.261799);
-                GLfloat Z = R / tan(0.261799);
+                GLfloat X = R / tan(lazerAngle); // <--- 15 Degrees in Radians
+                GLfloat Z = R / tan(lazerAngle);
                  
             //GLfloat X = (R-5) * cos(rawAngle);
             //GLfloat Z = (R+5) * sin(rawAngle);

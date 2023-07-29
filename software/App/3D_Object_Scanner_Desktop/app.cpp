@@ -66,6 +66,26 @@ bool is_integer(const std::string& s) {
 	return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
+template<typename T>
+void cin_validate_input(T& var, const std::string& prompt) {
+	while (true) {
+		std::cout << prompt;
+
+		std::string inputLine;
+		std::getline(std::cin, inputLine);
+
+		std::stringstream ss(inputLine);
+
+		// Try to read a T from the stringstream, and ensure that there are no other characters
+		if (!(ss >> var) || !ss.eof()) {
+			std::cout << "Invalid input. Please try again.\n";
+		}
+		else {
+			break;
+		}
+	}
+}
+
 //Constants
 
 const unsigned int width = 1000;
@@ -73,7 +93,6 @@ const unsigned int height = 1000;
 
 //Thread Variables 
 //std::thread TCP_server_thread = std::thread(tcp_server_main);
-
 
 int spawnOpenGL(VerticeObject payload) {
 
@@ -202,21 +221,8 @@ int spawnOpenGL(VerticeObject payload) {
 	return 0;
 }
 
-void programCredit() {
-	std::string text_decor = " #################### ";
-	std::string r_p = " -> ";
-
-	std::cout << yellow << text_decor << "Lazer Scanner / Profiler into 3D Project - DESKTOP APP - " << text_decor << reset << std::endl;
-	std::cout << r_p << "Run TCP Server | rtcp [INT port]" << std::endl;
-	std::cout << r_p << "Render Dataset | render <STR path/to/dataset> [INT midpoint] [INT cutoff] [STR pipeline]\n" << std::endl;
-
-	std::cout << "Project by: jasonmzx , hope you enjoyed :-)\n\n\n" << std::endl;
-}
-
 int main() {
-
-	//Roll the credits at beginning
-	programCredit();
+	programCredit();	//Roll the credits at start of Application 
 
 	while (true) {
 		std::cout << "Enter command: ";
@@ -316,48 +322,24 @@ int main() {
 				
 
 			}
+
+			// This Command will be more of a "Fill in the Blanks" Kind of CLI
+
 			else if (tokens[0] == "mc" || tokens[0] == "mkcfg" || tokens[0] == "mkconf") {
-				// Ensure we have enough arguments for mandatory fields
-				if (tokens.size() < 6) {
-					std::string e = "Making of Dataset Config File requires more arguments...";
-					print_error(e);
-				}
-				else {
-					DatasetConfig configCommand;
-					
-					//Creation of Dataset Config
-					
-					configCommand.directory = tokens[1];
-					configCommand.dataset_title = tokens[2];
-					configCommand.step_angle_interval = std::stof(tokens[3]);
-					configCommand.adjustment_per_angle = std::stof(tokens[4]);
-					configCommand.relative_lazer_angle = std::stof(tokens[5]);
-					configCommand.pixel_midpoint_x = std::stoi(tokens[6]);
+		
+				//Ensure the Command is called (Without Args)
+				if (tokens.size() < 2) {
+				
+				DatasetConfig configCommand;
 
-					// Optional arguments
-					if (tokens.size() > 7 && is_integer(tokens[7])) {
-						configCommand.top_cutoff = std::stoi(tokens[7]);
-					}
-					if (tokens.size() > 8 && is_integer(tokens[8])) {
-						configCommand.bottom_cutoff = std::stoi(tokens[8]);
-					}
-
-					// CREATION OF FILE:
-
-					//Get filename
-					std::string cfname;
-					std::cout << green << "Enter a filename for your Config File : <config name>.cfg" << reset << std::endl;
-					std::cin >> cfname;
-
-					//! Check if USER enters a config name with file extension already, If so, don't add extension to str.
-					// The string is either too short to contain ".cfg", or it does not end with ".cfg" therefore add it
-					if (cfname.length() < 4 || cfname.rfind(".cfg") != cfname.length() - 4) {cfname += ".cfg";}
-
-					WriteConfigToFile(configCommand, cfname, std::string("configs"));
-
-					// Print command data
-					//TODO: print nicely
-					std::cout << "\n";
+				
+				cin_validate_input(configCommand.directory, "Enter the directory of the Dataset: ");
+				cin_validate_input(configCommand.config_title, "Enter the Title of this Configuration:");
+				
+				
+				} else {
+				std::string e = "Making of Dataset Config File requires more arguments...";
+				print_error(e);
 				}
 			}
 

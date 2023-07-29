@@ -14,5 +14,5 @@ const std::string reset("\033[0m");
 //Defined Print Methods
 
 void print_error(std::string& error);
-
+void programCredit();
 #endif

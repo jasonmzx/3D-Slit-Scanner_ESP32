@@ -165,10 +165,9 @@ std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path) {
 
 //! ####################### SERIALIZE / DESERIALIZE DATASET CONFIGURATION FILES  ####################### 
 
-
-
+// Serialize a DatasetConfig to a file
 void WriteConfigToFile(DatasetConfig& command, std::string& filename, std::string config_directory) {
-    
+
     create_folder_if_dont_exist(config_directory);
 
     std::string fullPath = config_directory + "\\" + filename;
@@ -181,26 +180,29 @@ void WriteConfigToFile(DatasetConfig& command, std::string& filename, std::strin
     }
 
     // Write each member variable
-    size_t length = command.directory.size(); //Unknown Length, so let's use `size_t`
-
+    size_t length = command.directory.size();
     file.write(reinterpret_cast<const char*>(&length), sizeof(length));
     file.write(command.directory.c_str(), length);
 
-    length = command.dataset_title.size();
+    length = command.config_title.size();
     file.write(reinterpret_cast<const char*>(&length), sizeof(length));
-    file.write(command.dataset_title.c_str(), length);
+    file.write(command.config_title.c_str(), length);
 
     file.write(reinterpret_cast<const char*>(&command.step_angle_interval), sizeof(command.step_angle_interval));
     file.write(reinterpret_cast<const char*>(&command.adjustment_per_angle), sizeof(command.adjustment_per_angle));
-    file.write(reinterpret_cast<const char*>(&command.relative_lazer_angle), sizeof(command.relative_lazer_angle));
+    file.write(reinterpret_cast<const char*>(&command.lazer_angle_relative_2_cam), sizeof(command.lazer_angle_relative_2_cam));
     file.write(reinterpret_cast<const char*>(&command.pixel_midpoint_x), sizeof(command.pixel_midpoint_x));
+    file.write(reinterpret_cast<const char*>(&command.pe_A), sizeof(command.pe_A));
+    file.write(reinterpret_cast<const char*>(&command.pe_B), sizeof(command.pe_B));
+    file.write(reinterpret_cast<const char*>(&command.pe_C), sizeof(command.pe_C));
+    file.write(reinterpret_cast<const char*>(&command.translation_vector), sizeof(command.translation_vector));
     file.write(reinterpret_cast<const char*>(&command.top_cutoff), sizeof(command.top_cutoff));
     file.write(reinterpret_cast<const char*>(&command.bottom_cutoff), sizeof(command.bottom_cutoff));
 
     file.close();
 }
 
-// Reads a MakeDatasetConfigCommand from a file
+// Deserialize a DatasetConfig from a file
 DatasetConfig ReadConfigFromFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
 
@@ -218,22 +220,23 @@ DatasetConfig ReadConfigFromFile(const std::string& filename) {
     file.read(&command.directory[0], length);
 
     file.read(reinterpret_cast<char*>(&length), sizeof(length));
-    command.dataset_title.resize(length);
-    file.read(&command.dataset_title[0], length);
+    command.config_title.resize(length);
+    file.read(&command.config_title[0], length);
 
     file.read(reinterpret_cast<char*>(&command.step_angle_interval), sizeof(command.step_angle_interval));
     file.read(reinterpret_cast<char*>(&command.adjustment_per_angle), sizeof(command.adjustment_per_angle));
-    file.read(reinterpret_cast<char*>(&command.relative_lazer_angle), sizeof(command.relative_lazer_angle));
+    file.read(reinterpret_cast<char*>(&command.lazer_angle_relative_2_cam), sizeof(command.lazer_angle_relative_2_cam));
     file.read(reinterpret_cast<char*>(&command.pixel_midpoint_x), sizeof(command.pixel_midpoint_x));
+    file.read(reinterpret_cast<char*>(&command.pe_A), sizeof(command.pe_A));
+    file.read(reinterpret_cast<char*>(&command.pe_B), sizeof(command.pe_B));
+    file.read(reinterpret_cast<char*>(&command.pe_C), sizeof(command.pe_C));
+    file.read(reinterpret_cast<char*>(&command.translation_vector), sizeof(command.translation_vector));
     file.read(reinterpret_cast<char*>(&command.top_cutoff), sizeof(command.top_cutoff));
     file.read(reinterpret_cast<char*>(&command.bottom_cutoff), sizeof(command.bottom_cutoff));
 
     file.close();
-
     return command;
 }
-
-
 
 //! ####################### POINT CLOUD & OTHER 3D | FILE EXPORTS  ####################### 
 
