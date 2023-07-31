@@ -208,7 +208,10 @@ DatasetConfig ReadConfigFromFile(const std::string& filename) {
 
     if (!file) {
         std::cerr << "Cannot open file to read: " << filename << "\n";
-        return DatasetConfig();  // return empty struct
+        
+        DatasetConfig empty;
+        empty.is_found = false;
+        return empty;  // return empty struct
     }
 
     DatasetConfig command;
@@ -233,6 +236,8 @@ DatasetConfig ReadConfigFromFile(const std::string& filename) {
     file.read(reinterpret_cast<char*>(&command.translation_vector), sizeof(command.translation_vector));
     file.read(reinterpret_cast<char*>(&command.top_cutoff), sizeof(command.top_cutoff));
     file.read(reinterpret_cast<char*>(&command.bottom_cutoff), sizeof(command.bottom_cutoff));
+
+    command.is_found = true;
 
     file.close();
     return command;

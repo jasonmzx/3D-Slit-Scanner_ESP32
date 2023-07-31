@@ -123,7 +123,8 @@ VerticeObject generate_cube_point_cloud(VerticeObject& obj, std::vector<GLfloat>
 }
 
 
-VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice, std::vector<LazerSlice>& preprocessed_dataset, ExtractFunc extraction_fn) {
+VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice, 
+    std::vector<LazerSlice>& preprocessed_dataset, int IMAGE_MIDPOINT, ExtractFunc extraction_fn) {
 
     std::vector<GLfloat> xyz_slice_file = {};
 
@@ -153,9 +154,7 @@ VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice, 
                 point[0] + cubeSize, point[1] + cubeSize, point[2] + cubeSize, debug_n, 1.0f,  debug_n, // Vertex 7 (top-right-front)
                 point[0] - cubeSize, point[1] + cubeSize, point[2] + cubeSize, debug_n, 1.0f,  debug_n  // Vertex 8 (top-left-front)
                 });
-
         }
-
         for (glm::vec3 point : slice.list_3d_points) {
 
             xyz_slice_file.reserve(3);
@@ -164,7 +163,6 @@ VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice, 
             xyz_slice_file.insert(xyz_slice_file.end(), {
                 point[0], point[1], point[2] // Vertex 1 (bottom-left-back)
                 });
-
         }
 
     }

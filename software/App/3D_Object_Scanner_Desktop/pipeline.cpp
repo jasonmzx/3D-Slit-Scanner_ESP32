@@ -31,7 +31,8 @@ VerticeObject pipeline1(std::string dataset, int midpoint, int cutoff) {
 
     std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
-    generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_15);
+    //TODO: FIX generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_15);
+    obj.indices_length = 1; //TODO: REMOVE
     return obj;
 }
 
@@ -51,7 +52,8 @@ VerticeObject pipeline1_planar_eq(std::string dataset, int midpoint, int cutoff)
 
     std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
-    generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_15_planar);
+    //TODO: FIX generate_xyz(obj, xyz_slice, preprocessed_dataset, extract_cylindrical_pts__rot_mat_15_planar);
+    obj.indices_length = 1; //TODO: REMOVE
     return obj;
 }
 
@@ -302,6 +304,28 @@ VerticeObject pipelineCombo(std::string set_of_datasets_path, int midpoint, int 
     return obj;
 }
 
+// Define your pipeline functions.
+VerticeObject pipeline3(DatasetConfig config) {
+
+    std::cout << "\n Running pipeline 3...\n";
+
+    VerticeObject obj;
+
+    // Load data from Dataset Location
+    std::vector<LazerSlice> loaded_dataset = load_image_dataset(config.directory);
+
+    //! PRE PROCESSING STEP :
+
+    std::vector<LazerSlice> preprocessed_dataset = preproc_image_dataset_1(loaded_dataset);
+
+    //! RECONSTRUCTION & BUILDING STEP:
+
+    std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
+
+    generate_xyz(obj, xyz_slice, preprocessed_dataset, config.pixel_midpoint_x, extract_cylindrical_pts__rot_mat_15);
+    return obj;
+}
+
 
 // TODO: ADD MORE PIPELINES BELOW
 
@@ -310,6 +334,10 @@ std::map<std::string, PipelineFunction> pipelineMap = {
     {"pipeline2", pipeline2},
     {"pc", pipelineCombo},
     {"pa", pipeline1_planar_eq}
+};
+
+std::map<std::string, PipelineConfigFunction> newPipelineMap = {
+    {"pipeline3", pipeline3}
 };
 
 // Function to execute a pipeline by name.
@@ -324,6 +352,21 @@ VerticeObject executePipeline(const std::string& pipelineName, const std::string
 
     // Run the pipeline function.
     return it->second(dataset, midpoint, cutoff);
+}
+
+VerticeObject executeConfig(DatasetConfig config) {
+   // Find the pipeline function in the map.
+    std::string pipelineName = "pipeline3";
+
+    auto it = newPipelineMap.find(pipelineName); //TODO: Add this into DatasetConfig
+    if (it == newPipelineMap.end()) {
+        std::cerr << "Unknown Pipeline: " << pipelineName << "\n";
+        printUsage();
+        return VerticeObject(); // return default VerticeObject if no matching pipeline found
+    }
+
+   //! Run the Configuration Pipeline:
+    return it -> second(config);
 }
 
 // Function to print usage information.

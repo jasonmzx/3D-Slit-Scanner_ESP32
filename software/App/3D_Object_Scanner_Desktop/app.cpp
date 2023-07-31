@@ -67,24 +67,39 @@ bool is_integer(const std::string& s) {
 }
 
 template<typename T>
-void cin_validate_input(T& var, const std::string& prompt) {
+void cin_input_wrapper(T& var, const std::string& prompt, bool isMandatory) {
 	while (true) {
-		std::cout << prompt;
+		cinPromptMessage(prompt, isMandatory);
 
 		std::string inputLine;
 		std::getline(std::cin, inputLine);
+
+		// Check if inputLine contains any space(s)
+		if (inputLine.find(' ') != std::string::npos) {
+			std::string e = "Invalid input. Spaces are not allowed. Please try again...\n";
+			print_error(e);
+			continue;
+		}
 
 		std::stringstream ss(inputLine);
 
 		// Try to read a T from the stringstream, and ensure that there are no other characters
 		if (!(ss >> var) || !ss.eof()) {
-			std::cout << "Invalid input. Please try again.\n";
+
+			if (!isMandatory) { //If the Optional isn't Mandatory, can be escaped
+				std::cout << bright_green << "OK, SKIPPING Optional Parameter...\n\n" << std::endl;
+				break;
+			}
+			std::string e = "Invalid input... Please try again...\n";
+			print_error(e);
 		}
 		else {
+			std::cout << green << "OK, Recorded !\n\n" << reset << std::endl;
 			break;
 		}
 	}
 }
+
 
 //Constants
 
@@ -253,7 +268,7 @@ int main() {
 					tcp_server_main();
 				}
 			}
-			else if (tokens[0] == "r" || tokens[0] == "render") {
+			else if (tokens[0] == "rz" || tokens[0] == "render") {
 				if (tokens.size() < 2) {
 					std::string e = "Render command requires a directory path."; //TODO: swithc this to config path
 					print_error(e);
@@ -322,6 +337,24 @@ int main() {
 				
 
 			}
+			else if (tokens[0] == "rc" || tokens[0] == "r") {
+
+				if (tokens.size() == 2) {
+					DatasetConfig loaded_config = ReadConfigFromFile(tokens[1]);
+
+					if (loaded_config.is_found) {
+						std::cout << bright_yellow << "Rendering Configuration...\n `" << tokens[1] << "`\n\n ######### BASIC Configuration Info: #########" << reset << std::endl;
+						std::cout << "Directory :" << loaded_config.directory << std::endl;
+						std::cout << "Title :" << loaded_config.config_title << "\n" << std::endl;
+
+						VerticeObject pipeline_response = executeConfig(loaded_config);
+					}
+					else {
+						std::string e = "Couldn't find Configuration `" + tokens[1] + "` ... Try again?";
+						print_error(e);
+					}
+				}
+			}
 
 			// This Command will be more of a "Fill in the Blanks" Kind of CLI
 
@@ -332,14 +365,75 @@ int main() {
 				
 				DatasetConfig configCommand;
 
+				configCommand.is_found = true;
+
+				//! Mandatory {arams
 				
-				cin_validate_input(configCommand.directory, "Enter the directory of the Dataset: ");
-				cin_validate_input(configCommand.config_title, "Enter the Title of this Configuration:");
+				cin_input_wrapper(configCommand.directory, 
+					"Directory of the Dataset: (string)", 1);
+				cin_input_wrapper(configCommand.config_title, 
+					"Title of this Configuration: (string)", 1);
+				cin_input_wrapper(configCommand.step_angle_interval, 
+					"Step Angle Interval (EX: Rotates 2.86 Degrees Per Step) >> Answer in Degrees: (float)", 1);
+				cin_input_wrapper(configCommand.adjustment_per_angle, 
+					"Manual Correction Value for Step Angle Interval, If you don't wish to correct put 0: (float)", 1);
+
+				//! Cylindrical Method
+				cin_input_wrapper(configCommand.lazer_angle_relative_2_cam, 
+					"Angle of the Lazer Relative to the ESP Camera >> Answer in Degrees: (float)", 0);
+				cin_input_wrapper(configCommand.pixel_midpoint_x,
+					"X-Midpoint | If unsure, use ~200: (int)", 0);
+
+				//! Planar Equations Method
+				configCommand.pe_A = 0;
+
+				cin_input_wrapper(configCommand.pe_A,
+					"Enter `A` of Planar Equation: z = (A)*x + B*y + C | (double)", 0);
+
+				// Make sure that if the User Starts filling in the Planar Equation, they fill in everything...
+				if (configCommand.pe_A != 0) {
+					std::cout << magenta << "Since you've Entered A, you must Fill in B & C....\n\n" << reset << std::endl;
+					cin_input_wrapper(configCommand.pe_B,
+						"Enter `B` of Planar Equation: z = A*x + (B)*y + C | (double)", 1);
+					cin_input_wrapper(configCommand.pe_C,
+						"Enter `C` of Planar Equation: z = A*x + B*y + (C) | (double)", 1);
+				}
+				else {
+					std::cout << bright_magenta << "SKIPPING PLANAR EQ...\n" << reset << std::endl;
+				}
+
+				//TODO: Get Vec3 tvec
+
+				for (int i = 0; i < 3; ++i) {
+					float temp = 0.0;
+
+					std::string st = "Enter Translation Vector's TVEC[ " + std::to_string(i) + " ]";
+
+					cin_input_wrapper(temp, st, 0);
+
+					//If temp is still 0 on first iteration, skip everything else, the User doesn't want TVEC input
+					if (i == 0 && temp == 0) { //! Set TVEC to ( 0 , 0 , 0 )
+						configCommand.translation_vector[i] = temp;
+						configCommand.translation_vector[i+1] = temp;
+						configCommand.translation_vector[i+2] = temp;
+						std::cout << bright_magenta << "SKIPPING TVEC... [0,0,0]\n\n" << reset << std::endl;
+						break;
+					}
+
+					configCommand.translation_vector[i] = temp;
+				}
 				
+				std::cout << reset << "Completed Configuration Registration... Before saving the file:" << std::endl;
+				std::string cfname;
+				std::cout << green << "Enter a filename for your Config File : <config name>.cfg" << reset << std::endl;
+				std::cin >> cfname;
+
+				//! Check if USER enters a config name with file extension already, If so, don't add extension to str.
+				// The string is either too short to contain ".cfg", or it does not end with ".cfg" therefore add it
+				if (cfname.length() < 4 || cfname.rfind(".cfg") != cfname.length() - 4) { cfname += ".cfg"; }
 				
-				} else {
-				std::string e = "Making of Dataset Config File requires more arguments...";
-				print_error(e);
+				WriteConfigToFile(configCommand, cfname, std::string("configs"));
+				std::cout << reset << "SUCCESSFULLY SAVED CONFIG!" << std::endl;
 				}
 			}
 

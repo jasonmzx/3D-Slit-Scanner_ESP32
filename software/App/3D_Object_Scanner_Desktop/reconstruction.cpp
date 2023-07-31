@@ -108,15 +108,14 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
 }
 
-void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {
+void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, int IMAGE_MIDPOINT) {
 
     // Image Height & Width:
     int n_rows = slice.processed_matrix.rows;
     int n_cols = slice.processed_matrix.cols;
 
     //TODO: Remove the Hard Code on IMG_MIDPOINT
-
-    int IMAGE_MIDPOINT = 191;
+    //int IMAGE_MIDPOINT = 191;
 
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
@@ -156,7 +155,7 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             int Y = row*1.89;
             float R = IMAGE_MIDPOINT - middle;
 
-            float rawAngle = ((slice.angle + angleOffset) * pi / 180); // Convert angle to radians
+            float rawAngle = slice.angle * pi / 180; // Convert angle to radians
 
             float lazerAngle = 15 * (pi / 180);
 

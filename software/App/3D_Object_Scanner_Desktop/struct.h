@@ -36,6 +36,8 @@ struct LazerSlice {
 
 struct DatasetConfig {
 
+    bool is_found;
+
     //! Dataset Configuration | REQUIRED PARAMETERS:
     std::string directory;
     std::string config_title;
