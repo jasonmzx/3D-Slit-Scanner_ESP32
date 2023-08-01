@@ -114,9 +114,6 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
     int n_rows = slice.processed_matrix.rows;
     int n_cols = slice.processed_matrix.cols;
 
-    //TODO: Remove the Hard Code on IMG_MIDPOINT
-    //int IMAGE_MIDPOINT = 191;
-
     for (int row = 0; row < n_rows; row++) {
         std::vector<int> activated_cols; // Horizontal Slice (of columns) for each row
 
@@ -132,7 +129,6 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
                 if (brightness > 100) {    //TODO: Remove the Hard Code?
                     activated_cols.push_back(col);
                 }
-
             }
         }
 
@@ -150,10 +146,9 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             // Apply the camera calibration and distortion correction
             cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
 
-            //
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Y = row*1.89;
-            float R = IMAGE_MIDPOINT - middle;
+            int Y = row*2.1;
+            float R = IMAGE_MIDPOINT - dstPoints[0].x;
 
             float rawAngle = slice.angle * pi / 180; // Convert angle to radians
 
@@ -191,7 +186,6 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             slice.list_3d_points.push_back(glm::vec3(normalX, normalY, normalZ)); // GLM::VEC3 works well with OpenGL
         }
     }
-
 }
 
 void extract_cylindrical_pts__rot_mat_15_planar(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, float angleOffset) {

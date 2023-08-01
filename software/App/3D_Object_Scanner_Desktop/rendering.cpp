@@ -134,7 +134,7 @@ VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice,
     cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(n_cols, n_rows), 1);
 
     for (LazerSlice slice : preprocessed_dataset) {
-        extraction_fn(slice, cameraMatrix, distCoeffs, newCameraMatrix, 0);
+        extraction_fn(slice, cameraMatrix, distCoeffs, newCameraMatrix, IMAGE_MIDPOINT);
         std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
 
         float debug_n = slice.angle = slice.angle / 360.0;

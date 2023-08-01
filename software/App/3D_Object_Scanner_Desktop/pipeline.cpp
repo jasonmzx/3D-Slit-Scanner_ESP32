@@ -21,7 +21,7 @@ VerticeObject pipeline1(std::string dataset, int midpoint, int cutoff) {
     VerticeObject obj;
 
     // Load data from Dataset Location
-    std::vector<LazerSlice> loaded_dataset = load_image_dataset(dataset);
+    std::vector<LazerSlice> loaded_dataset = load_image_dataset(dataset, 0, 0); //TODO: Adjust floats!
 
     //! PRE PROCESSING STEP :
 
@@ -42,7 +42,7 @@ VerticeObject pipeline1_planar_eq(std::string dataset, int midpoint, int cutoff)
     VerticeObject obj;
 
     // Load data from Dataset Location
-    std::vector<LazerSlice> loaded_dataset = load_image_dataset(dataset);
+    std::vector<LazerSlice> loaded_dataset = load_image_dataset(dataset,0,0);
 
     //! PRE PROCESSING STEP :
 
@@ -311,9 +311,10 @@ VerticeObject pipeline3(DatasetConfig config) {
 
     VerticeObject obj;
 
-    // Load data from Dataset Location
-    std::vector<LazerSlice> loaded_dataset = load_image_dataset(config.directory);
+    //! LOAD-IN DATASET & DECODING STEP :
 
+    std::vector<LazerSlice> loaded_dataset = load_image_dataset(config.directory, config.step_angle_interval, config.adjustment_per_angle);
+    
     //! PRE PROCESSING STEP :
 
     std::vector<LazerSlice> preprocessed_dataset = preproc_image_dataset_1(loaded_dataset);

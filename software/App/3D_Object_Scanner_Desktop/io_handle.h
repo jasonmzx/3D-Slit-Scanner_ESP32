@@ -3,7 +3,7 @@
 
 #include "struct.h"
 
-std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path);
+std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path, float step_angle_interval, float adjustment_per_angle);
 
 std::vector<cv::Mat> load_mat_vector(std::string dataset_base_path);
 

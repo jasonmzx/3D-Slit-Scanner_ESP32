@@ -348,6 +348,8 @@ int main() {
 						std::cout << "Title :" << loaded_config.config_title << "\n" << std::endl;
 
 						VerticeObject pipeline_response = executeConfig(loaded_config);
+						int ogl_inst = spawnOpenGL(pipeline_response);
+						return 0;
 					}
 					else {
 						std::string e = "Couldn't find Configuration `" + tokens[1] + "` ... Try again?";

@@ -27,7 +27,7 @@ void create_folder_if_dont_exist(const std::string& filename) {
 
 //! Loads Image Datasets in Vector of LazerSlice's ( Essentially loads in Dataset with Metadata )
 
-std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
+std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path, float step_angle_interval, float adjustment_per_angle) {
 
     std::vector<LazerSlice> lazerSlices = {};
 
@@ -42,14 +42,13 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
 
             //Do while is iterating over all imgs of that Dataset
             do {
-                //? Skip "." and ".."
+                //?SKIP: if the current file is either the current directory (".") or the parent directory ("..")
                 if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0)
                     continue;
 
-
                 std::cout << loghead << findFileData.cFileName << std::endl;
                 
-                // Parse the filename
+                //Parse the filename
 
                 int lazerInt;
                 int num1, num2;
@@ -59,11 +58,11 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
                 bool lazerOn = lazerInt != 1;
                 float angle = num1 + num2 / pow(10, std::to_string(num2).length());
 
-                //get active on lzer
+                //get active on lazer
 
                 if (lazerOn) {
 
-                    LazerSlice s;
+                    LazerSlice slice;
 
                     // Construct full file path - ON
                     std::string full_path = dataset_folder_path + "/" + findFileData.cFileName;
@@ -76,22 +75,25 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
                     cv::Mat ON = cv::imread(full_path);
                     cv::Mat OFF = cv::imread(off_full_path);
 
+                    //Lazer Correction  
+
+
                     //Add cv mats to object
 
                     if (!ON.empty()) {
-                        s.on_img = ON;
-                        s.angle = angle; //since we load angle info from ON img
+                        slice.on_img = ON;
+                        slice.angle = angle * adjustment_per_angle; //since we load angle info from ON img
                     }
                     if (!OFF.empty()) { 
-                        s.off_img = OFF; 
+                        slice.off_img = OFF; 
                     }
 
-                    lazerSlices.push_back(s);
+                    lazerSlices.push_back(slice);
                 }
 
                 std::cout << "LazerOn " << lazerOn << " angle : " << angle << std::endl;
 
-            } while (FindNextFileA(hFind, &findFileData) != 0);
+            } while (FindNextFileA(hFind, &findFileData) != 0); //Finds the next file, and breaks upon last file check being 0
 
             FindClose(hFind);
         }
@@ -101,6 +103,7 @@ std::vector<LazerSlice> load_image_dataset(std::string dataset_folder_path) {
 
     return lazerSlices;
 }
+
 
 
 std::vector<std::vector<LazerSlice>> load_set_of_image_datasets(std::string set_folder_path) {
@@ -122,7 +125,8 @@ std::vector<std::vector<LazerSlice>> load_set_of_image_datasets(std::string set_
                 {
                     std::string subdir_path = set_folder_path + "/" + fd.cFileName;
                     if (folder_exists(subdir_path)) {
-                        loaded_datasets.push_back(load_image_dataset(subdir_path));
+                        //TODO: Actually get good values for this
+                        loaded_datasets.push_back(load_image_dataset(subdir_path,0,0));
                     }
                 }
             }
