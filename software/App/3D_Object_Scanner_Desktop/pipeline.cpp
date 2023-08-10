@@ -323,7 +323,7 @@ VerticeObject pipeline3(DatasetConfig config) {
 
     std::vector<GLfloat> xyz_slice = {}; //Store 3D slices extrapolated from 2D CV processed img
 
-    generate_xyz(obj, xyz_slice, preprocessed_dataset, config.pixel_midpoint_x, extract_cylindrical_pts__rot_mat_15);
+    generate_xyz(obj, xyz_slice, preprocessed_dataset, config.pixel_midpoint_x, config.y_stretch, extract_cylindrical_pts__rot_mat_15);
     return obj;
 }
 

@@ -40,7 +40,7 @@ VerticeObject generate_cube_point_cloud(VerticeObject& obj, std::vector<GLfloat>
     cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(n_cols, n_rows), 1);
 
     for (LazerSlice slice : preprocessed_dataset) {
-        extraction_fn(slice, cameraMatrix, distCoeffs, newCameraMatrix, 0);
+        extraction_fn(slice, cameraMatrix, distCoeffs, newCameraMatrix, 0, 2.0);
         std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
 
         float debug_n = slice.angle = slice.angle / 360.0;
@@ -124,7 +124,7 @@ VerticeObject generate_cube_point_cloud(VerticeObject& obj, std::vector<GLfloat>
 
 
 VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice, 
-    std::vector<LazerSlice>& preprocessed_dataset, int IMAGE_MIDPOINT, ExtractFunc extraction_fn) {
+    std::vector<LazerSlice>& preprocessed_dataset, int IMAGE_MIDPOINT, float y_stretch, ExtractFunc extraction_fn) {
 
     std::vector<GLfloat> xyz_slice_file = {};
 
@@ -134,7 +134,7 @@ VerticeObject generate_xyz(VerticeObject& obj, std::vector<GLfloat>& xyz_slice,
     cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, cv::Size(n_cols, n_rows), 1);
 
     for (LazerSlice slice : preprocessed_dataset) {
-        extraction_fn(slice, cameraMatrix, distCoeffs, newCameraMatrix, IMAGE_MIDPOINT);
+        extraction_fn(slice, cameraMatrix, distCoeffs, newCameraMatrix, IMAGE_MIDPOINT, y_stretch);
         std::cout << "Sl3D: " << slice.list_3d_points.size() << std::endl;
 
         float debug_n = slice.angle = slice.angle / 360.0;

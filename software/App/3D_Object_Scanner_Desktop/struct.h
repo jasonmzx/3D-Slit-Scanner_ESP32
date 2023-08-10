@@ -46,7 +46,7 @@ struct DatasetConfig {
     float step_angle_interval;
     float adjustment_per_angle;
 
-
+    float y_stretch;
 
     //! CYLINDRICAL Method | EXCLUSIVE PARAMETERS (optional)
     float lazer_angle_relative_2_cam;

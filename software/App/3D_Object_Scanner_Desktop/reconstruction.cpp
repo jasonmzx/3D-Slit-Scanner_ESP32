@@ -107,7 +107,7 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
 }
 
-void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, int IMAGE_MIDPOINT) {
+void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat distCoeffs, cv::Mat newCameraMatrix, int IMAGE_MIDPOINT, float Y_SCALE) {
 
     // Image Height & Width:
     int n_rows = slice.processed_matrix.rows;
@@ -146,14 +146,15 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
 
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Y = row*2.25;
             float R = IMAGE_MIDPOINT - dstPoints[0].x;
 
             float rawAngle = slice.angle * pi / 180; // Convert angle to radians
 
             float lazerAngle = 15 * (pi / 180);
 
-                GLfloat X = R / tan(lazerAngle); // <--- 15 Degrees in Radians
+                GLfloat Y = dstPoints[0].y * Y_SCALE; // dstPoints[0].y is equiv to `row`
+
+                GLfloat X = R / tan(lazerAngle);  // <--- 15 Degrees in Radians
                 GLfloat Z = R / tan(lazerAngle);
                  
             //GLfloat X = (R-5) * cos(rawAngle);

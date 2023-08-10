@@ -95,6 +95,7 @@ void cin_input_wrapper(T& var, const std::string& prompt, bool isMandatory) {
 		}
 		else {
 			std::cout << green << "OK, Recorded !\n\n" << reset << std::endl;
+			std::cout << "Extracted value: " << var << std::endl;
 			break;
 		}
 	}
@@ -268,58 +269,6 @@ int main() {
 					tcp_server_main();
 				}
 			}
-			else if (tokens[0] == "rz" || tokens[0] == "render") {
-				if (tokens.size() < 2) {
-					std::string e = "Render command requires a directory path."; //TODO: swithc this to config path
-					print_error(e);
-				}
-				else {
-					RenderCommand renderCommand;
-					renderCommand.directory = tokens[1];
-					renderCommand.isMidpointSet = false;
-					renderCommand.isCutoffSet = false;
-					renderCommand.isPipelineSet = false;
-
-					if (tokens.size() > 2 && is_integer(tokens[2])) {
-						renderCommand.midpoint = std::stoi(tokens[2]);
-						renderCommand.isMidpointSet = true;
-					}
-					if (tokens.size() > 3 && is_integer(tokens[3])) {
-						renderCommand.cutoff = std::stoi(tokens[3]);
-						renderCommand.isCutoffSet = true;
-					}
-					if (tokens.size() > 4) {
-						renderCommand.pipeline = tokens[4];
-						renderCommand.isPipelineSet = true;
-					}
-					// Print command data or handle renderCommand
-					std::cout << "Render command activated. Directory: " << renderCommand.directory;
-
-
-					// At this point, it's OK
-
-					if (renderCommand.isMidpointSet) {
-						std::cout << ", Midpoint: " << renderCommand.midpoint;
-					}
-					if (renderCommand.isCutoffSet) {
-						std::cout << ", Cutoff: " << renderCommand.cutoff;
-					}
-					if (renderCommand.isPipelineSet) {
-						std::cout << ", Pipeline: " << renderCommand.pipeline;
-						
-						VerticeObject pipeline_response = executePipeline(
-							renderCommand.pipeline, 
-							renderCommand.directory,
-							renderCommand.midpoint,
-							renderCommand.cutoff
-						);
-
-						int ogl_inst = spawnOpenGL(pipeline_response);
-						return 0;
-					}
-					std::cout << "\n";
-				}
-			}
 			else if (tokens[0] == "cc" || tokens[0] == "camera-calib") {
 				
 				//Assert for Correct Command Size:
@@ -354,6 +303,8 @@ int main() {
 						std::cout << bright_yellow << "Rendering Configuration...\n `" << tokens[1] << "`\n\n ######### BASIC Configuration Info: #########" << reset << std::endl;
 						std::cout << "Directory :" << loaded_config.directory << std::endl;
 						std::cout << "Title :" << loaded_config.config_title << "\n" << std::endl;
+						std::cout << "Y_SCALE :" << loaded_config.y_stretch << "\n" << std::endl;
+						std::cout << "Y_SCALE :" << loaded_config.step_angle_interval << "\n" << std::endl;
 
 						VerticeObject pipeline_response = executeConfig(loaded_config);
 						int ogl_inst = spawnOpenGL(pipeline_response);
@@ -383,7 +334,8 @@ int main() {
 				cin_input_wrapper(configCommand.step_angle_interval, 
 					"Step Angle Interval (EX: Rotates 2.86 Degrees Per Step) >> Answer in Degrees: (float)", 1);
 				cin_input_wrapper(configCommand.adjustment_per_angle, 
-					"Manual Correction Value for Step Angle Interval, If you don't wish to correct put 0: (float)", 1);
+					"Manual Correction Value for Step Angle Interval, If you don't wish to correct | default: `1.0` : (float)", 1);
+				cin_input_wrapper(configCommand.y_stretch, "Y Stretch | default: `1.0` : (float)", 1);
 
 				//! Cylindrical Method
 				cin_input_wrapper(configCommand.lazer_angle_relative_2_cam, 
@@ -409,7 +361,7 @@ int main() {
 					std::cout << bright_magenta << "SKIPPING PLANAR EQ...\n" << reset << std::endl;
 				}
 
-				//TODO: Get Vec3 tvec
+				//* Getting TVEC 3
 
 				for (int i = 0; i < 3; ++i) {
 					float temp = 0.0;

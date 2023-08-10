@@ -194,6 +194,8 @@ void WriteConfigToFile(DatasetConfig& command, std::string& filename, std::strin
 
     file.write(reinterpret_cast<const char*>(&command.step_angle_interval), sizeof(command.step_angle_interval));
     file.write(reinterpret_cast<const char*>(&command.adjustment_per_angle), sizeof(command.adjustment_per_angle));
+    file.write(reinterpret_cast<const char*>(&command.y_stretch), sizeof(command.y_stretch));
+
     file.write(reinterpret_cast<const char*>(&command.lazer_angle_relative_2_cam), sizeof(command.lazer_angle_relative_2_cam));
     file.write(reinterpret_cast<const char*>(&command.pixel_midpoint_x), sizeof(command.pixel_midpoint_x));
     file.write(reinterpret_cast<const char*>(&command.pe_A), sizeof(command.pe_A));
@@ -232,6 +234,7 @@ DatasetConfig ReadConfigFromFile(const std::string& filename) {
 
     file.read(reinterpret_cast<char*>(&command.step_angle_interval), sizeof(command.step_angle_interval));
     file.read(reinterpret_cast<char*>(&command.adjustment_per_angle), sizeof(command.adjustment_per_angle));
+    file.read(reinterpret_cast<char*>(&command.y_stretch), sizeof(command.y_stretch));
     file.read(reinterpret_cast<char*>(&command.lazer_angle_relative_2_cam), sizeof(command.lazer_angle_relative_2_cam));
     file.read(reinterpret_cast<char*>(&command.pixel_midpoint_x), sizeof(command.pixel_midpoint_x));
     file.read(reinterpret_cast<char*>(&command.pe_A), sizeof(command.pe_A));
