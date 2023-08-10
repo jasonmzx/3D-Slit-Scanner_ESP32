@@ -11,6 +11,8 @@
 //! CONSTANTS: 
 
 constexpr double pi = 3.14159265358979323846;
+const std::string default_config_path = "C:\\Users\\jason\\Documents\\GitHub\\3D-IoT-Object-Scanner\\software\\App\\3D_Object_Scanner_Desktop\\configs";
+
 
 //! DATA STRUCTURES For Dataset Representations:
 

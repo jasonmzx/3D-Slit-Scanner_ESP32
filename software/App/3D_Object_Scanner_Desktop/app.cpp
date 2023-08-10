@@ -339,8 +339,16 @@ int main() {
 			}
 			else if (tokens[0] == "rc" || tokens[0] == "r") {
 
-				if (tokens.size() == 2) {
-					DatasetConfig loaded_config = ReadConfigFromFile(tokens[1]);
+				if (tokens.size() < 4) {
+
+					std::string config_filepath = tokens[1];
+
+					if (tokens.size() == 3) {
+						config_filepath = default_config_path + '\\' + config_filepath;
+					}
+
+					DatasetConfig loaded_config = ReadConfigFromFile(config_filepath);
+
 
 					if (loaded_config.is_found) {
 						std::cout << bright_yellow << "Rendering Configuration...\n `" << tokens[1] << "`\n\n ######### BASIC Configuration Info: #########" << reset << std::endl;
@@ -357,7 +365,6 @@ int main() {
 					}
 				}
 			}
-
 			// This Command will be more of a "Fill in the Blanks" Kind of CLI
 
 			else if (tokens[0] == "mc" || tokens[0] == "mkcfg" || tokens[0] == "mkconf") {
@@ -366,11 +373,9 @@ int main() {
 				if (tokens.size() < 2) {
 				
 				DatasetConfig configCommand;
-
 				configCommand.is_found = true;
 
 				//! Mandatory {arams
-				
 				cin_input_wrapper(configCommand.directory, 
 					"Directory of the Dataset: (string)", 1);
 				cin_input_wrapper(configCommand.config_title, 

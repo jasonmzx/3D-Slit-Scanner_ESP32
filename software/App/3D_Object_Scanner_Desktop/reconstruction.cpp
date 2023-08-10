@@ -19,17 +19,16 @@ int getMiddleElement(std::vector<int>& int_list) {
     return int_list[middleIndex];
 }
 
-GLfloat normalizeCoordinate(float value, float width) {
+GLfloat normalizeCoordinate(float value, float width) { 
     GLfloat normalized;
 
-    if (fabs(width) < 1e-7) {  // check if width is too close to zero
-        std::cerr << "Error: Width cannot be too close to zero" << std::endl;
+    if (fabs(width) < 1e-7) {  //! Width being the size of dimension that value is being normalized by
+        std::cerr << "Error: Width cannot be that close to zero" << std::endl;
         normalized = 0;
     }
     else {
         normalized = (2.0f * value) / (width - 1) - 1.0f;
     }
-
     return normalized * -1;
 }
 
@@ -56,7 +55,7 @@ void extract_cylindrical_pts(LazerSlice& slice, cv::Mat cameraMatrix, cv::Mat di
 
                 float brightness = (1 * r + 0.5 * g + 0.7 * b);
 
-                if (brightness > 35) {    //TODO: Remove the Hard Code?
+                if (brightness > 40) {    //TODO: Remove the Hard Code?
                     activated_cols.push_back(col);
                 }
 
@@ -147,7 +146,7 @@ void extract_cylindrical_pts__rot_mat_15(LazerSlice& slice, cv::Mat cameraMatrix
             cv::undistortPoints(srcPoints, dstPoints, cameraMatrix, distCoeffs, cv::noArray(), newCameraMatrix);
 
             //int Z = dstPoints[0].y; //Z is up in Cylindrical
-            int Y = row*2.1;
+            int Y = row*2.25;
             float R = IMAGE_MIDPOINT - dstPoints[0].x;
 
             float rawAngle = slice.angle * pi / 180; // Convert angle to radians
