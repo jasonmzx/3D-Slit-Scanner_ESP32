@@ -1,5 +1,5 @@
 # Structured Light "Slit" Scanner using ESP32-CAM with IoT capabilites.
-For 3D Reconstruction of Objects on Client Application.
+3D Reconstruction of Objects on Client Application.
 <div>
 <img alt="OpenCV2" src="https://img.shields.io/badge/-OpenCV2-%235C3EE8?logo=opencv&logoColor=white">
 <img alt="OpenGL" src="https://img.shields.io/badge/-OpenGL-%235586A4?logo=opengl&logoColor=white">
@@ -12,9 +12,13 @@ For 3D Reconstruction of Objects on Client Application.
 ---
 ## Project Navigation:
 #### CORE Software Features:
-[3D Reconstruction Techniques *(Entire Pipeline Explanation)*](#3d-reconstruction-procedures--techniques) 
-
 [ESP-32 Data Acquisition & TCP Communications to Client C++ Application](#esp-32-data-acquisition--tcp-communications-to-client-c-application) 
+
+[Decoding & Pre-Processing of Image Datasets](#decoding--pre-processing-of-image-datasets)
+
+[**Reconstruction Method 1.** | Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space]()
+
+[**Reconstruction Method 2.** | 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*]()
 
 [Client Interface *(CLI & OpenGL; Point Cloud Rendering)*](#c-client-interface)
 
@@ -28,18 +32,40 @@ For 3D Reconstruction of Objects on Client Application.
 
 ---
 
-# 3D Reconstruction Procedures & Techniques
-
-The General Pipeline Looks like this:
-
-#### 1.) Image Datasets Decoding & Preprocessing
-
-#### 2.) Reconstruction Techniques
-
-
-
-
 # ESP-32 Data Acquisition & TCP Communications to Client C++ Application
+
+
+# Decoding & Pre-Processing of Image Datasets
+
+After network communications between the ESP-32 CAM and Client Application have completed, the client-side application has received a directory full of images with associated meta-data information in the title. *(Binary Type for Pair-Ordering & Angle in Degrees)*
+
+In `struct.h` 
+```c++
+struct LazerSlice {
+    cv::Mat off_img;
+    cv::Mat on_img;
+    cv::Mat processed_matrix;
+
+    std::vector<glm::vec3> list_3d_points;
+
+    float angle;
+};
+```
+
+The first step is to parse/decode these images into an ordered structure, with decoded **angle** in degrees, **off_img** set to the `1_...` Image, and **on_img** set to `0_...` Image. This **pair** of images is casted to `cv::Mat` and is used in pre-processing, which returns the **processed_matrix** that is the matrix we'll be reference in the reconstruction algorithms later on.
+
+![IMG](./static/algorithm_img_preproc.png)
+
+**NOTE:** Whilst using the second Reconstruction method, you shouldn't use the Perspective Transformation, as the Camera Extrincts are known and
+all interpolation of 2D points are done by the Lazer's Planar Equation.
+
+By the end of Decoding & Preprocessing, we should have a list of structs: `std::vector<LazerSlice> slices = { ... }` where each pair represents 1 list entry. *(At this point, `list_3d_points` is still un-assigned)*
+
+### 2.) Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space
+
+### 3.) 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*
+
+
 
 # C++ Client Interface
 

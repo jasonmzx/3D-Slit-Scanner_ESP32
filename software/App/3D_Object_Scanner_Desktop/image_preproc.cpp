@@ -56,12 +56,12 @@ std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset
 
         std::vector<cv::Point2f> perspective_crop;
 
-        //? Currently Hardcoded... FIX IT
-        perspective_crop.push_back(cv::Point2f(200, 40)); //Top Right
-        perspective_crop.push_back(cv::Point2f(200, 190)); //Bottom Right
+        //? Currently Hardcoded... FIX IT (X,Y)
+        perspective_crop.push_back(cv::Point2f(200, -20)); //Top Right
+        perspective_crop.push_back(cv::Point2f(200, 210)); //Bottom Right
 
-        perspective_crop.push_back(cv::Point2f(6, 243)); //Bottom Left
-        perspective_crop.push_back(cv::Point2f(6, 77)); //Top Left
+        perspective_crop.push_back(cv::Point2f(6, 263)); //Bottom Left
+        perspective_crop.push_back(cv::Point2f(6, 17)); //Top Left
 
         std::vector<cv::Point2f> target_shape;
         target_shape.push_back(cv::Point2f(proc_diff.cols, 0));           // Top Right

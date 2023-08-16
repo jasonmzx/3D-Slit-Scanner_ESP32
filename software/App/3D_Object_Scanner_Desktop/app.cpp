@@ -300,10 +300,31 @@ int main() {
 
 
 					if (loaded_config.is_found) {
+					
+					//& -------------------- CONFIG FILE PRINTING --------------------
 						std::cout << bright_yellow << "Rendering Configuration...\n `" << tokens[1] << "`\n\n ######### BASIC Configuration Info: #########" << reset << std::endl;
-						std::cout << "Directory :" << loaded_config.directory << std::endl;
-						std::cout << "Title :" << loaded_config.config_title << "\n" << std::endl;
-						std::cout << "Y_Scale :" << loaded_config.y_stretch << "\n" << std::endl;
+
+						std::cout << "Directory : " << loaded_config.directory << std::endl;
+						std::cout << "Title : " << loaded_config.config_title << std::endl;
+						std::cout << "Step Angle Interval : " << loaded_config.step_angle_interval << std::endl;
+						std::cout << "Adjustment Per Angle : " << loaded_config.adjustment_per_angle << std::endl;
+						std::cout << "Y_Scale : " << loaded_config.y_stretch << std::endl;
+
+						std::cout << "\nCYLINDRICAL Method EXCLUSIVE PARAMETERS:" << std::endl;
+						std::cout << "Lazer Angle Relative to Camera : " << loaded_config.lazer_angle_relative_2_cam << std::endl;
+						std::cout << "Pixel Midpoint X : " << loaded_config.pixel_midpoint_x << std::endl;
+
+						std::cout << "\nPLANAR EQUATION Method EXCLUSIVE PARAMETERS:" << std::endl;
+						std::cout << "PE A : " << loaded_config.pe_A << std::endl;
+						std::cout << "PE B : " << loaded_config.pe_B << std::endl;
+						std::cout << "PE C : " << loaded_config.pe_C << std::endl;
+						std::cout << "Translation Vector (tvec) : [" << loaded_config.translation_vector[0] << ", " << loaded_config.translation_vector[1] << ", " << loaded_config.translation_vector[2] << "]" << std::endl;
+
+						std::cout << "\nExtra Parameters:" << std::endl;
+						std::cout << "Top Cutoff : " << loaded_config.top_cutoff << std::endl;
+						std::cout << "Bottom Cutoff : " << loaded_config.bottom_cutoff << std::endl;
+						std::cout << std::endl;
+					//& -------------------- CONFIG FILE PRINTING --------------------
 
 						VerticeObject pipeline_response = executeConfig(loaded_config);
 						int ogl_inst = spawnOpenGL(pipeline_response);
