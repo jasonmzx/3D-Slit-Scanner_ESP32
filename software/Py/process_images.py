@@ -151,5 +151,11 @@ def find_circle_grid_in_imgs(img_folder):
     print(list_of_vec3_avg(img_plane_equations))
 
 # specify the folder containing images
-img_folder = "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/camera-calibration-data/ESP_CAM_Dot_Pattern_Diffs"
+
+# print("Please Enter PATH to Set of Dot Pattern Images:")
+# img_folder_path = ""
+# input(img_folder_path)
+# find_circle_grid_in_imgs(img_folder_path)
+
+img_folder = "C:/Users/jason/Documents/GitHub/3D-IoT-Object-Scanner/data_camera_calibration/ESP_CAM_Dot_Pattern_Diffs"
 find_circle_grid_in_imgs(img_folder)

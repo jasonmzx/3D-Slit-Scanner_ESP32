@@ -303,8 +303,7 @@ int main() {
 						std::cout << bright_yellow << "Rendering Configuration...\n `" << tokens[1] << "`\n\n ######### BASIC Configuration Info: #########" << reset << std::endl;
 						std::cout << "Directory :" << loaded_config.directory << std::endl;
 						std::cout << "Title :" << loaded_config.config_title << "\n" << std::endl;
-						std::cout << "Y_SCALE :" << loaded_config.y_stretch << "\n" << std::endl;
-						std::cout << "Y_SCALE :" << loaded_config.step_angle_interval << "\n" << std::endl;
+						std::cout << "Y_Scale :" << loaded_config.y_stretch << "\n" << std::endl;
 
 						VerticeObject pipeline_response = executeConfig(loaded_config);
 						int ogl_inst = spawnOpenGL(pipeline_response);
