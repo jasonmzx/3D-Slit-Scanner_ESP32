@@ -28,7 +28,7 @@
 
 [⚙️ Physical Design *(CAD Models, Mechanical Specification)*](#3d-reconstruction-procedures--techniques) 
 
-[🔌 Hardware Setup *(Circuit Diagram & extra elaborations)*]() 
+[🔌 Hardware Setup *(Circuit Diagram & Setup Elaborations)*](https://github.com/jasonmzx/3D-Slit-Scanner_ESP32/blob/main/hardware.md) 
 
 ---
 
