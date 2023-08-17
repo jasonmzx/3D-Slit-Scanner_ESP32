@@ -16,9 +16,9 @@
 
 [Decoding & Pre-Processing of Image Datasets](#decoding--pre-processing-of-image-datasets)
 
-[**Reconstruction Method 1.** | Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space]()
+[**🖥 1.** | Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space]()
 
-[**Reconstruction Method 2.** | 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*]()
+[**🖥 2.** | 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*]()
 
 [Client Interface *(CLI & OpenGL; Point Cloud Rendering)*](#c-client-interface)
 
@@ -28,7 +28,7 @@
 
 [⚙️ Physical Design *(CAD Models, Mechanical Specification)*](#3d-reconstruction-procedures--techniques) 
 
-[🔌 Hardware Setup *(Circuit Diagram & extra elaborations)*](#3d-reconstruction-procedures--techniques) 
+[🔌 Hardware Setup *(Circuit Diagram & extra elaborations)*]() 
 
 ---
 

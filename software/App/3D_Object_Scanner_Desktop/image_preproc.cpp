@@ -72,7 +72,6 @@ std::vector<LazerSlice> preproc_image_dataset_1(std::vector<LazerSlice>& dataset
         // Get the perspective transformation matrix
 
         cv::Mat transformation = cv::getPerspectiveTransform(perspective_crop, target_shape);
-
         // Apply the perspective transformation
         cv::Mat rotated_image;
         cv::warpPerspective(proc_diff, rotated_image, transformation, proc_diff.size());
