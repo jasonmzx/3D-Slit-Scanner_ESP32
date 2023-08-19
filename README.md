@@ -11,6 +11,8 @@
 
 ---
 ## Project Navigation:
+
+
 #### CORE Software Features:
 [ESP-32 Data Acquisition & TCP Communications to Client C++ Application](#esp-32-data-acquisition--tcp-communications-to-client-c-application) 
 
@@ -32,10 +34,34 @@
 
 ---
 
-# ESP-32 Data Acquisition & TCP Communications to Client C++ Application
+# Showcase!
+
+<details>
+  <summary style="font-size: 30px; font-weight: 500;">Meditating Monk</summary>
+  
+<img src="../3D-IoT-Object-Scanner/static/showcase_monk.png" alt="3D IoT Object Scanner Image 0">
+
+<img src="../3D-IoT-Object-Scanner/static/showcase_monk_1.png" alt="3D IoT Object Scanner Image 1">
+
+<img src="../3D-IoT-Object-Scanner/static/showcase_monk_2.png" alt="3D IoT Object Scanner Image 2">
+
+</details>
+
+<details>
+  <summary style="font-size: 30px; font-weight: 500;">Dog In Cup</summary>
+  
+<img src="../3D-IoT-Object-Scanner/static/showcase_dog_1.png" alt="3D IoT Object Scanner Image 3">
+
+<img src="../3D-IoT-Object-Scanner/static/showcase_dog_2.png" alt="3D IoT Object Scanner Image 4">
+
+</details>
+
+---
+
+## ESP-32 Data Acquisition & TCP Communications to Client C++ Application
 
 
-# Decoding & Pre-Processing of Image Datasets
+## Decoding & Pre-Processing of Image Datasets
 
 After network communications between the ESP-32 CAM and Client Application have completed, the client-side application has received a directory full of images with associated meta-data information in the title. *(Binary Type for Pair-Ordering & Angle in Degrees)*
 
