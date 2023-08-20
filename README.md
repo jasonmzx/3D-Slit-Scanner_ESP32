@@ -39,20 +39,20 @@
 <details>
   <summary style="font-size: 30px; font-weight: 500;">Meditating Monk</summary>
   
-<img src="../3D-IoT-Object-Scanner/static/showcase_monk.png" alt="3D IoT Object Scanner Image 0">
+<img src="./static/showcase_monk.png" alt="3D IoT Object Scanner Image 0">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_monk_1.png" alt="3D IoT Object Scanner Image 1">
+<img src="./static/showcase_monk_1.png" alt="3D IoT Object Scanner Image 1">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_monk_2.png" alt="3D IoT Object Scanner Image 2">
+<img src="./static/showcase_monk_2.png" alt="3D IoT Object Scanner Image 2">
 
 </details>
 
 <details>
   <summary style="font-size: 30px; font-weight: 500;">Dog In Cup</summary>
   
-<img src="../3D-IoT-Object-Scanner/static/showcase_dog_1.png" alt="3D IoT Object Scanner Image 3">
+<img src="./static/showcase_dog_1.png" alt="3D IoT Object Scanner Image 3">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_dog_2.png" alt="3D IoT Object Scanner Image 4">
+<img src="./static/showcase_dog_2.png" alt="3D IoT Object Scanner Image 4">
 
 </details>
 
