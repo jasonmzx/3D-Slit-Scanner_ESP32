@@ -59,11 +59,11 @@
 <details>
   <summary style="font-size: 30px; font-weight: 500;">Butter Holder</summary>
   
-<img src="../3D-IoT-Object-Scanner/static/showcase_butter_holder.png" alt="3D IoT Object Scanner Image 5">
+<img src="./static/showcase_butter_holder.png" alt="3D IoT Object Scanner Image 5">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_butter_holder_1.png" alt="3D IoT Object Scanner Image 6">
+<img src="./static/showcase_butter_holder_1.png" alt="3D IoT Object Scanner Image 6">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_butter_holder_2.png" alt="3D IoT Object Scanner Image 7">
+<img src="./static/showcase_butter_holder_2.png" alt="3D IoT Object Scanner Image 7">
 
 </details>
 
