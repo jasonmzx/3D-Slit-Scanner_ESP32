@@ -36,6 +36,8 @@
 
 # Showcase!
 
+#### *Datasets* that worked fairly well:
+
 <details>
   <summary style="font-size: 30px; font-weight: 500;">Meditating Monk</summary>
   
@@ -59,17 +61,25 @@
 <details>
   <summary style="font-size: 30px; font-weight: 500;">Butter Holder</summary>
   
-<img src="../3D-IoT-Object-Scanner/static/showcase_butter_holder.png" alt="3D IoT Object Scanner Image 5">
+<img src="./static/showcase_butter_holder.png" alt="3D IoT Object Scanner Image 5">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_butter_holder_1.png" alt="3D IoT Object Scanner Image 6">
+<img src="./static/showcase_butter_holder_1.png" alt="3D IoT Object Scanner Image 6">
 
-<img src="../3D-IoT-Object-Scanner/static/showcase_butter_holder_2.png" alt="3D IoT Object Scanner Image 7">
+<img src="./static/showcase_butter_holder_2.png" alt="3D IoT Object Scanner Image 7">
 
 </details>
+
+
+#### *Datasets* with lots of Missing Information & Noise :
 
 <details>
   <summary style="font-size: 30px; font-weight: 500;">Elephant</summary>
   
+  <img src="./static/showcase_elephant.png" alt="3D IoT Object Scanner Image 8">
+
+  <img src="./static/showcase_elephant_1.png" alt="3D IoT Object Scanner Image 9">
+
+  <img src="./static/showcase_elephant_2.png" alt="3D IoT Object Scanner Image 10">
 
 </details>
 
