@@ -117,6 +117,18 @@ By the end of Decoding & Preprocessing, we should have a list of structs: `std::
 
 ### 2.) Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space
 
+After the Data Acquisition & Pre-processing Phase, We've got a set of `LazerSlice`, where the `processed_matrix` parameter is essentially a **Binary Mask** , where the activated points is the projected Line Lazer at the specific `angle`
+
+Now I know the 2D Lazer Line Projection on the Object at all angles, from here I choose an Origin Point *(On the X-axis)* to define the center for all images. 
+
+Basic Idea:
+
+- Further points from the origin corresspond to further points in x and z axis in 3D
+- TODO: improve this section
+
+
+
+
 ### 3.) 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*
 
 
