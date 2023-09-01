@@ -39,7 +39,7 @@
 #### *Datasets* that worked fairly well:
 
 <details>
-  <summary style="font-size: 30px; font-weight: 500;">Meditating Monk</summary>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Meditating Monk</summary>
   
 <img src="./static/showcase_monk.png" alt="3D IoT Object Scanner Image 0">
 
@@ -50,7 +50,7 @@
 </details>
 
 <details>
-  <summary style="font-size: 30px; font-weight: 500;">Dog In Cup</summary>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Dog In Cup</summary>
   
 <img src="./static/showcase_dog_1.png" alt="3D IoT Object Scanner Image 3">
 
@@ -59,7 +59,7 @@
 </details>
 
 <details>
-  <summary style="font-size: 30px; font-weight: 500;">Butter Holder</summary>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Butter Holder</summary>
   
 <img src="./static/showcase_butter_holder.png" alt="3D IoT Object Scanner Image 5">
 
@@ -73,7 +73,7 @@
 #### *Datasets* with lots of Missing Information & Noise :
 
 <details>
-  <summary style="font-size: 30px; font-weight: 500;">Elephant</summary>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Elephant</summary>
   
   <img src="./static/showcase_elephant.png" alt="3D IoT Object Scanner Image 8">
 
@@ -115,19 +115,23 @@ all interpolation of 2D points are done by the Lazer's Planar Equation.
 
 By the end of Decoding & Preprocessing, we should have a list of structs: `std::vector<LazerSlice> slices = { ... }` where each pair represents 1 list entry. *(At this point, `list_3d_points` is still un-assigned)*
 
-### 2.) Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space
+---
 
-After the Data Acquisition & Pre-processing Phase, We've got a set of `LazerSlice`, where the `processed_matrix` parameter is essentially a **Binary Mask** , where the activated points is the projected Line Lazer at the specific `angle`
+### Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space
 
-Now I know the 2D Lazer Line Projection on the Object at all angles, from here I choose an Origin Point *(On the X-axis)* to define the center for all images. 
+After the Data Acquisition & Pre-processing Phase, We've got a set of `LazerSlice`s, where the `processed_matrix` parameter is essentially a **Binary Mask** , where the activated points is the projected Line Lazer at the specific `angle`. 
 
-Basic Idea:
+More Pre-processing happens to the Binary Masks, such as extracting 1 X,Y Activated Point per Y Layer on the image, and an Undistortion Transformation to rectify Camera Distortion, since the ESP slighly barrels I find. *(Transformation done with cv::undistortPoints, with Camera Matrix & Distortion Coefficients found with Python Script)*
 
-- Further points from the origin corresspond to further points in x and z axis in 3D
-- TODO: improve this section
+Now I've got clean 2D Lazer Line Projection on the Object at all captured angles *(Discrete Values, from 0 to 360 deg)*. from here I choose an Origin Point *(On the X-axis)* to define the center for all images. **Defined as X-Midpoint**
 
+![Cylindrical-2-3D-cartesian](./static/cylindrical_2_cartesian_diagram.png)
 
+The algorithm takes a 2D image and conceptualizes it as a cross-sectional slice at a specific laser angle, denoted as Θ Θ. This slice is represented in a cylindrical coordinate system, centered around an origin defined by the midpoint of the X-axis in the image. The X and Z coordinates of this slice are then transformed into Cartesian coordinates by dividing them by tan(Θ). Subsequently, these Cartesian coordinates are normalized to fit within the OpenGL coordinate range. 
 
+Finally, the list of 3D points within this slice undergoes a rotational transformation via the Rotation Matrix with the Slice's Angle characterized by the Current Rotation Angle `LazerSlice.angle`. 
+
+**Observation:** Going from Cylindrical to Cartesian, then doing a transformation for rotation of 3D points preserves the relative spatial relationships within the 3D points captured of the slice!
 
 ### 3.) 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*
 
