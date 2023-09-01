@@ -169,7 +169,7 @@ Now I've got clean 2D Lazer Line Projection on the Object at all captured angles
 
 The algorithm takes a 2D image and conceptualizes it as a cross-sectional slice at a specific laser angle, denoted as Θ Θ. This slice is represented in a cylindrical coordinate system, centered around an origin defined by the midpoint of the X-axis in the image. The X and Z coordinates of this slice are then transformed into Cartesian coordinates by dividing them by tan(Θ). Subsequently, these Cartesian coordinates are normalized to fit within the OpenGL coordinate range. 
 
-Finally, the list of 3D points within this slice undergoes a rotational transformation via the Rotation Matrix with the Slice's Angle characterized by the Current Rotation Angle `LazerSlice.angle`. 
+Finally, the list of 3D points extrapolated from the slice undergoes a rotational transformation *(Vector (x,y,z) multiplied by (3 x 3) Rotation Matrix with the slice's angle as theta `LazerSlice.angle`.* 
 
 **Observation:** Going from Cylindrical to Cartesian, then doing a transformation for rotation of 3D points preserves the relative spatial relationships within the 3D points captured on each slice!
 
