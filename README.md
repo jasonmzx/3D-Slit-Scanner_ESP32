@@ -10,6 +10,15 @@
 </div>
 
 ---
+
+<details>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Machine Setup (Physical System)</summary>
+
+![Picture Of Scanner](./static/picture_of_scanner_physical_system.png)
+
+</details>
+
+---
 ## Project Navigation:
 
 
@@ -88,6 +97,37 @@
 
 ## ESP-32 Data Acquisition & TCP Communications to Client C++ Application
 
+As you can see in the **Machine Setup / Physical System**, there is a Rotating Plate on which an Object is placed on, there is also a line lazer fixed at 15 Degrees, and the ESP-32 Camera Board aligned with the center of the Rotating Plate. *(However the ESP-32 is higher than the Plate)*
+
+For every Rotation, **3 Data Points** need to be captured and sent to the C++ Application **in Order**, View the Table Below.
+
+| Data Point | Example Data |
+|----------|----------|
+| 1.) Image with Line Lazer Projection | ![LLP](./static/0_88-6600.jpg) |
+| 2.) Image without Line Lazer Projection | ![NLLP](./static/1_88-6600.jpg) |
+| 3.) Acknowledgement | Current Rotation of Object *(Angle in Degrees, as Float Value)* |
+
+The ESP-32 join's my WiFi network upon **setup**. In the **loop** function, the images & acknowledgements are sent in a particular sequence via TCP, as I need to know which image is which, and what acknowledgement they correspond to. TCP is especially good for lossless data transfer over the network.
+
+The C++ Application, on the other end, runs a TCP Server which the ESP writes data to upon every **loop** iteration.
+
+ESP-32 WiFi Connection via `WiFiClient` & `WiFiMulti` libraries.
+
+<details>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Further Elaborations about Networking System | ESP32 to C++ Client | (Diagrams & More Info.) </summary>
+
+
+![Cpp_client_diagram](./static/networking_cpp_tcp_serv.png)
+
+![ESP_STATE_DIAGRAM](./static/networking_esp_1.png)
+
+In this Diagram, the actual sending of information is abstracted from the main loop, however the main loop ensures success of these functions, as it tries them until success, and re-tries upon failure. *(False return)*
+
+### State Diagram of the `CaptureImage` & `sendAcknowledgement` Functions
+
+![ESP_STATE_DIAGRAM_2](./static/networking_esp_2.png)
+
+</details>
 
 ## Decoding & Pre-Processing of Image Datasets
 
@@ -117,7 +157,7 @@ By the end of Decoding & Preprocessing, we should have a list of structs: `std::
 
 ---
 
-### Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space
+## Transforming 2D Points into Cylindrical Coordinates for subsequent translation into 3D Cartesian Space
 
 After the Data Acquisition & Pre-processing Phase, We've got a set of `LazerSlice`s, where the `processed_matrix` parameter is essentially a **Binary Mask** , where the activated points is the projected Line Lazer at the specific `angle`. 
 
@@ -131,7 +171,7 @@ The algorithm takes a 2D image and conceptualizes it as a cross-sectional slice 
 
 Finally, the list of 3D points within this slice undergoes a rotational transformation via the Rotation Matrix with the Slice's Angle characterized by the Current Rotation Angle `LazerSlice.angle`. 
 
-**Observation:** Going from Cylindrical to Cartesian, then doing a transformation for rotation of 3D points preserves the relative spatial relationships within the 3D points captured of the slice!
+**Observation:** Going from Cylindrical to Cartesian, then doing a transformation for rotation of 3D points preserves the relative spatial relationships within the 3D points captured on each slice!
 
 ### 3.) 3D Reconstruction (In Cartesian Space) using Lazer's Planar Equation & Camera Extrincts *(Translation Vector)*
 
