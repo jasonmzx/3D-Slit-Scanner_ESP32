@@ -82,7 +82,7 @@
 #### *Datasets* with lots of Missing Information & Noise :
 
 <details>
-  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Elephant</summary>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Wooden Elephant</summary>
   
   <img src="./static/showcase_elephant.png" alt="3D IoT Object Scanner Image 8">
 
@@ -92,6 +92,25 @@
 
 </details>
 
+<details>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Wooden Frog</summary>
+  
+  <img src="./static/showcase_frog.png" alt="3D IoT Object Scanner Image 11">
+
+  <img src="./static/showcase_frog_1.png" alt="3D IoT Object Scanner Image 12">
+
+  <img src="./static/showcase_frog_2.png" alt="3D IoT Object Scanner Image 13">
+
+</details>
+
+<details>
+  <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Headless Luck</summary>
+  
+  <img src="./static/showcase_headless_duck.png" alt="3D IoT Object Scanner Image 14">
+  
+  <img src="./static/showcase_headless_duck_1.png" alt="3D IoT Object Scanner Image 15">
+
+</details>
 
 ---
 
@@ -116,6 +135,7 @@ ESP-32 WiFi Connection via `WiFiClient` & `WiFiMulti` libraries.
 <details>
   <summary style="font-size: 30px; font-weight: 500; cursor: pointer;">Further Elaborations about Networking System | ESP32 to C++ Client | (Diagrams & More Info.) </summary>
 
+Below is a Basic Diagram of how the TCP Server works on the C++ Client, essentially the **Receiving Thread** is actually the TCP Server, which get's sent messages containing Images & Acknowledgements from the ESP-32 Cam. This thread then pushes those buffers onto a queue for the **Processing Thread** to deal with them. This way, the actual server suffers no overhead for processing, and can most-likely always be "unblocked" during an incoming message.
 
 ![Cpp_client_diagram](./static/networking_cpp_tcp_serv.png)
 
@@ -185,13 +205,16 @@ Finally, the list of 3D points extrapolated from the slice undergoes a rotationa
 
 ### Ressources & Inspiration for this project:
 
+**Main Inspiration:**
+
 [hackster.io ; 3D Scanning with Raspberry Pi and MATLAB](https://www.hackster.io/strangeloop/3d-scanning-with-raspberry-pi-and-matlab-cc30e8)
+
+Very Useful Ressources:
 
 [ece.cornell.edu, ECE 5725: Embedded OS Project ; Laser 3D Scanner](https://courses.ece.cornell.edu/ece5990/ECE5725_Spring2019_Projects/3D_Scanner_mfx2_tbs47/index.html)
 
 [Brown University ; The Laser Slit 3D Scanner](http://mesh.brown.edu/desktop3dscan/ch4-slit.html)
 
-
-Less Useful...
+Less Useful Ressources:
 
 [The Complete Guide to 3D Scanners using Laser Triangulation](https://www.3dnatives.com/en/3d-scanner-laser-triangulation080920174-99/amp/)
