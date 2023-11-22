@@ -9,7 +9,7 @@
 #define OLED_RESET     -1 
 #define SCREEN_ADDRESS 0x3C //ESP32's Screen Address in hex
 
-//Camera Pins (OV2640 Camera connected on the Wrover board)
+//* Camera Pins (OV2640 Camera connected on the Wrover board)
 #define PWDN_GPIO_NUM    -1
 #define RESET_GPIO_NUM   -1
 #define XCLK_GPIO_NUM    21
@@ -27,5 +27,3 @@
 #define VSYNC_GPIO_NUM   25
 #define HREF_GPIO_NUM    23
 #define PCLK_GPIO_NUM    22
-
-

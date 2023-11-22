@@ -3,6 +3,8 @@
  * WORKING
  */
  
+//For Joystick:
+#include <ezButton.h>
 
 #include "esp_camera.h"
 #include <WiFi.h>
@@ -12,6 +14,9 @@
 #include "pins.h"
 #include "camera_handle.cpp"
 
+//Threading Task
+TaskHandle_t Task1;
+
 WiFiMulti WiFiMulti;
 camera_config_t config;
 
@@ -20,13 +25,19 @@ void captureImage(WiFiClient client);
 
 //static camera_fb_t get_img();
 
-const char *ssid_Router     = "wifina";  //input your wifi name
-const char *password_Router = "1326Gabi@";  //input your wifi passwords
-
+const char *ssid_Router     = "REDACTED";  //input your wifi name
+const char *password_Router = "REDACTED";  //input your wifi passwords
 
 //? NEMA 17 Stepper Motor Definitions:
 const int stepPin = 32; 
 const int dirPin = 33; 
+
+// //? Small Button Pin
+// const int buttonPin = 15;
+
+//? Line Lazer Pin
+const int lazerPin = 2;
+
 
 
 void setup()
@@ -36,10 +47,13 @@ void setup()
 
   config_init(); //This function sets the `camera_config_t config` global var to the pins needed (defined in `pins.h`)
 
-    
+    Serial.println(xPortGetCoreID());
     //Activating Pins for Stepper Motor:
     pinMode(stepPin,OUTPUT); 
     pinMode(dirPin,OUTPUT);
+    pinMode(lazerPin, OUTPUT);
+
+    // pinMode(buttonPin, INPUT);s
 
   // camera init
   esp_err_t err = esp_camera_init(&config);
@@ -72,41 +86,127 @@ void setup()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    delay(500);
+  delay(500);
+
+      //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
+
 }
 
 
-void loop()
-{ 
 
+int machineState = 0;
+int tick = 0;
+float angle = 0;
 
-  //motor rotation
-     int microDelay = 1000;
-     for(int x = 0; x < 200; x++) {
-      digitalWrite(stepPin,HIGH); 
-      delayMicroseconds(microDelay); 
-      digitalWrite(stepPin,LOW); 
-     }
+void loop() {
+  
+  delay(15);
 
-  delay(1000); // One second delay
-  Serial.println("Rotated");
+  if (tick > 100 && machineState == 0) {
+    machineState = 1;
+    tick = 0;
+  }
+  
+  if(machineState == 1){
+   delay(1000);
 
-
-//    const uint16_t port = 80;
-//    const char * host = "192.168.1.1"; // ip or
     const uint16_t port = 8888;
     const char * host = "10.0.0.88"; // IPv4 internal (of my Laptop)
 
     Serial.print("Connecting to :");
     Serial.println(host);
 
+    digitalWrite(lazerPin, HIGH);
+    delay(20);
     // Use WiFiClient class to create TCP connections
     WiFiClient client;
-    captureImage(client,port,host);
+
+
+  //! Capture with Lazer
+    bool lazerCapture = captureImage(client,port,host);
+
+    while(!lazerCapture){
+      delay(500);
+      Serial.println("Re-trying Camera Capture (With Lazer)");
+      lazerCapture = captureImage(client,port,host);
+    }
+
+    delay(500);    
+
+  //! Capture without Lazer
+
+    digitalWrite(lazerPin, LOW);
+    bool refCapture = captureImage(client,port,host);
+
+    while(!refCapture){
+      delay(500);
+      Serial.println("Re-trying Camera Capture (With Lazer)");
+      refCapture = captureImage(client,port,host);
+    }
+
+  //motor rotation
+    
+    if(angle < 360) {
+     int microDelay = 4250;
+
+      // 90 DEG = ~2475 optimal ?
+      // 11.5 DEG = 308
+
+
+
+      //Used to be x < 154
+      for(int x = 0; x < 77; x++) {
+        digitalWrite(stepPin,HIGH); 
+        delayMicroseconds(microDelay); 
+        digitalWrite(stepPin,LOW); 
+      }
+
+      
+      Serial.println("current angle:");
+      Serial.println(angle);
+      Serial.println("\n");
+    }
+
+    bool ackStatus = sendAcknowledgement(client, port, host, angle);
+
+    while(!ackStatus){
+      delay(500);
+      Serial.println("Re-trying Acknowledgement");
+      ackStatus = sendAcknowledgement(client, port, host, angle);
+    }
+
+angle += 2.86;
+     //angle += 5.72; //Update Angle after Sending ack
+    machineState = 0; 
+
+  }
+  tick++;
+    
 }
 
+bool sendAcknowledgement(WiFiClient client, u_int16_t port, const char* host, float angle) {
+    int TCP_Connect = client.connect(host, port);
+    if (!TCP_Connect) {
+        Serial.println("[ACK] Connection failed, No TCP Stream Available");
+        delay(500);
+        return false;
+    }
 
-void captureImage(WiFiClient client, u_int16_t port, const char* host) {
+    char angleStr[10]; // increased the size to accommodate the float and precision
+    snprintf(angleStr, sizeof(angleStr), "%.4f", angle); // formatted print to get 4 decimal places
+
+    // Replace the dot with a dash
+    for (int i = 0; angleStr[i]; i++) {
+        if (angleStr[i] == '.')
+            angleStr[i] = '-';
+    }
+
+    client.write(angleStr);
+    return true;
+    }
+
+bool captureImage(WiFiClient client, u_int16_t port, const char* host) {
+
 
   Serial.println("Running captureImage() ");
     int TCP_Connect = client.connect(host,port);
@@ -115,23 +215,41 @@ void captureImage(WiFiClient client, u_int16_t port, const char* host) {
     if (!TCP_Connect) {
         Serial.println("Connection failed, No TCP Stream Available");
         delay(500);
-        return;
+        return false;
     }
 
     Serial.println("Connected to server ! ( OK )");
 
     //camera_fb_t x = get_img();
     camera_fb_t *fb = NULL;
+
+//! Band-aid Fix; Getting, Returning & Getting ESP Camera again for end of repeat fb issue 
+
     fb = esp_camera_fb_get();
+    
+    xTaskCreatePinnedToCore(
+                    ESP_Return_on_Thread,   /* Task function. */
+                    "Task1",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    fb,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &Task1,      /* Task handle to keep track of created task */
+                    0);          /* pin task to core 0 */  
+    
+    fb = esp_camera_fb_get();
+  
+//! ENDOF Band-aid fix
 
     if(!fb) {
       Serial.println("Camera capture failed...");
-      return;
+      return false;
     } else {
       Serial.println("Camera Captured ( OK )");
     }
 
-    const char *data = (const char*)fb->buf; // ??? Lol
+    const char *data = (const char*)fb->buf; //? Casts dereference of data to an array of characters 
+                                            //? from the fb's buf attribute
+
 // Image metadata.  Yes it should be cleaned up to use printf if the function is available
   Serial.print("Size of image:");
   Serial.println(fb->len);
@@ -148,21 +266,32 @@ void captureImage(WiFiClient client, u_int16_t port, const char* host) {
   //getResponse(client);
   Serial.print(data);
   client.write(data, fb->len);
-  esp_camera_fb_return(fb);
 
-  Serial.println("bottom of loop...");
+  //esp_camera_fb_return(fb);
+    xTaskCreatePinnedToCore(
+                    ESP_Return_on_Thread,   /* Task function. */
+                    "Task1",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    fb,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &Task1,      /* Task handle to keep track of created task */
+                    0);          /* pin task to core 0 */  
+
+
+
+  delay(100);
+  return true;
 }
 
 
+void ESP_Return_on_Thread( void * pvParameters ){
+  Serial.print("Task1 running on core ");
+  Serial.println(xPortGetCoreID());
 
-void getResponse(WiFiClient client) {
-  byte buffer[8] = { };
-  while (client.available() > 0 || buffer[0] == NULL) {
-    int len = client.available();
-    Serial.println("Len" + len);
-    if (len > 8) len = 8;
-    client.read(buffer, len);
-  }
+  camera_fb_t* fb = (camera_fb_t*)pvParameters;
+
+  esp_camera_fb_return(fb);
+  vTaskDelete(NULL);
 }
 
 void config_init() {
